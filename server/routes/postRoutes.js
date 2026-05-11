@@ -1,13 +1,15 @@
 const express = require("express");
+
 const router = express.Router();
+
+const { createPost, getPosts } = require("../controllers/postController");
+
 const authMiddleware = require("../middleware/authMiddleware");
 
-// Example protected route
-router.get("/protected", authMiddleware, (req, res) => {
-  res.json({
-    message: "You are authorized",
-    user: req.user,
-  });
-});
+// CREATE POST
+router.post("/create", authMiddleware, createPost);
+
+// GET ALL POSTS
+router.get("/", getPosts);
 
 module.exports = router;

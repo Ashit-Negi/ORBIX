@@ -26,6 +26,7 @@ export default function Login() {
       localStorage.setItem("token", res.data.token);
 
       alert("Login successful");
+      window.location.href = "/";
 
       console.log(res.data);
     } catch (error) {
