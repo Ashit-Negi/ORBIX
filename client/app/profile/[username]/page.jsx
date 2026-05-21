@@ -12,8 +12,10 @@ import ProfileSidebar from "@/components/profile/ProfileSidebar";
 import ProfileAbout from "@/components/profile/ProfileAbout";
 import ProfileTabs from "@/components/profile/ProfileTabs";
 import ProfilePosts from "@/components/profile/ProfilePosts";
+import ProfileExperience from "@/components/profile/ProfileExperience";
 import EmptyState from "@/components/profile/EmptyState";
 import EditProfileModal from "@/components/profile/EditProfileModal";
+import AddExperienceModal from "@/components/profile/AddExperienceModal";
 
 export default function ProfilePage() {
   const params = useParams();
@@ -25,6 +27,8 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
 
   const [isEditOpen, setIsEditOpen] = useState(false);
+
+  const [isExperienceOpen, setIsExperienceOpen] = useState(false);
 
   const [activeTab, setActiveTab] = useState("Posts");
 
@@ -91,6 +95,7 @@ export default function ProfilePage() {
       socket.off("connection-updated");
     };
   }, []);
+
   const fetchProfile = async () => {
     try {
       const res = await API.get(`/profile/${username}`);
@@ -164,11 +169,12 @@ export default function ProfilePage() {
             {/* POSTS */}
             {activeTab === "Posts" && <ProfilePosts posts={profile.posts} />}
 
-            {/* MESSAGES */}
-            {activeTab === "Messages" && (
-              <EmptyState
-                title="No Messages Yet"
-                description="Messages and conversations will appear here once users start interacting."
+            {/* EXPERIENCE */}
+            {activeTab === "Experience" && (
+              <ProfileExperience
+                experiences={profile.experiences}
+                isOwner={loggedInUsername === profile.username}
+                setIsExperienceOpen={setIsExperienceOpen}
               />
             )}
 
@@ -189,6 +195,13 @@ export default function ProfilePage() {
         setProfile={setProfile}
         isOpen={isEditOpen}
         setIsOpen={setIsEditOpen}
+      />
+
+      {/* EXPERIENCE MODAL */}
+      <AddExperienceModal
+        isOpen={isExperienceOpen}
+        setIsOpen={setIsExperienceOpen}
+        setProfile={setProfile}
       />
     </div>
   );

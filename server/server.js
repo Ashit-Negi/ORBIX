@@ -13,6 +13,8 @@ const profileRoutes = require("./routes/profileRoutes");
 const connectionRoutes = require("./routes/connectionRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 const messageRoutes = require("./routes/messageRoutes");
+const experienceRoutes = require("./routes/experienceRoutes");
+const userRoutes = require("./routes/userRoutes");
 
 dotenv.config();
 
@@ -42,6 +44,8 @@ app.use("/api/profile", profileRoutes);
 app.use("/api/connections", connectionRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/messages", messageRoutes);
+app.use("/api/experience", experienceRoutes);
+app.use("/api/users", userRoutes);
 app.get("/", (req, res) => {
   res.send("Orbix API running...");
 });

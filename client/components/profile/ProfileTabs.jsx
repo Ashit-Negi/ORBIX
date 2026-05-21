@@ -1,7 +1,7 @@
 "use client";
 
 export default function ProfileTabs({ activeTab, setActiveTab }) {
-  const tabs = ["Posts", "Messages", "Communities"];
+  const tabs = ["Posts", "Experience", "Communities"];
 
   return (
     <div className="dark-card rounded-[28px] p-2 flex items-center gap-2 overflow-x-auto">

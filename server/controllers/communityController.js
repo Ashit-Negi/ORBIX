@@ -445,3 +445,38 @@ exports.leaveCommunity = async (req, res) => {
     });
   }
 };
+exports.searchCommunities = async (req, res) => {
+  try {
+    const query = req.query.q || "";
+
+    if (!query.trim()) {
+      return res.json([]);
+    }
+
+    const communities = await prisma.community.findMany({
+      where: {
+        name: {
+          contains: query,
+          mode: "insensitive",
+        },
+      },
+
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        description: true,
+      },
+
+      take: 6,
+    });
+
+    res.json(communities);
+  } catch (error) {
+    console.log(error);
+
+    res.status(500).json({
+      message: "Search failed",
+    });
+  }
+};

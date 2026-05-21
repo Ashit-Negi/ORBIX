@@ -31,9 +31,11 @@ const initializeSocket = (server) => {
       console.log(`Joined conversation: ${conversationId}`);
     });
 
-    // SEND MESSAGE
-    socket.on("send-message", (messageData) => {
-      io.to(messageData.conversationId).emit("receive-message", messageData);
+    // LEAVE CONVERSATION
+    socket.on("leave-conversation", (conversationId) => {
+      socket.leave(conversationId);
+
+      console.log(`Left conversation: ${conversationId}`);
     });
 
     // DISCONNECT
@@ -43,6 +45,7 @@ const initializeSocket = (server) => {
       for (const [userId, id] of onlineUsers.entries()) {
         if (id === socket.id) {
           onlineUsers.delete(userId);
+          break;
         }
       }
 

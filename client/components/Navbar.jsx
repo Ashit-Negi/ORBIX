@@ -4,15 +4,14 @@ import Link from "next/link";
 
 import { useEffect, useRef, useState } from "react";
 
-import { Bell } from "lucide-react";
-
-import { io } from "socket.io-client";
+import { Bell, MessageCircle } from "lucide-react";
 
 import API from "@/lib/api";
+import socket from "@/lib/socket";
 
 import NotificationDropdown from "@/components/notifications/NotificationDropdown";
 
-const socket = io("http://localhost:5000");
+import UserSearch from "@/components/search/UserSearch";
 
 export default function Navbar() {
   const [user, setUser] = useState(null);
@@ -23,7 +22,7 @@ export default function Navbar() {
 
   const dropdownRef = useRef(null);
 
-  // GET USER
+  // GET USER + CONNECT SOCKET
   useEffect(() => {
     const token = localStorage.getItem("token");
 
@@ -33,15 +32,22 @@ export default function Navbar() {
 
         setUser(payload);
 
-        // JOIN SOCKET ROOM
+        // CONNECT SOCKET
+        socket.connect();
+
+        // JOIN USER ROOM
         socket.emit("join-user-room", payload.userId);
       } catch (error) {
         console.log(error);
       }
     }
+
+    return () => {
+      socket.disconnect();
+    };
   }, []);
 
-  // REALTIME BADGE
+  // REALTIME NOTIFICATIONS
   useEffect(() => {
     socket.on("new-notification", () => {
       setNotificationCount((prev) => prev + 1);
@@ -71,23 +77,25 @@ export default function Navbar() {
   const handleLogout = () => {
     localStorage.removeItem("token");
 
+    socket.disconnect();
+
     window.location.href = "/login";
   };
 
   return (
     <nav className="w-full bg-[#f3f3f1]/80 backdrop-blur-md border-b border-[#e7e7e4] sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-6">
         {/* LEFT */}
-        <div className="flex items-center gap-8">
+        <div className="flex items-center gap-8 flex-1">
           {/* LOGO */}
           <Link
             href="/"
-            className="text-xl sm:text-2xl font-semibold tracking-tight text-[#111111]"
+            className="text-xl sm:text-2xl font-semibold tracking-tight text-[#111111] whitespace-nowrap"
           >
             Orbix
           </Link>
 
-          {/* NAV LINKS */}
+          {/* DESKTOP NAV */}
           <div className="hidden md:flex items-center gap-6 text-sm text-[#52525b]">
             <Link href="/" className="hover:text-black transition">
               Home
@@ -97,6 +105,9 @@ export default function Navbar() {
               Communities
             </Link>
           </div>
+
+          {/* SEARCH */}
+          {user && <UserSearch />}
         </div>
 
         {/* ACTIONS */}
@@ -105,7 +116,7 @@ export default function Navbar() {
           {user && (
             <Link
               href="/communities/create"
-              className="hidden sm:flex bg-white border border-[#e5e7eb] px-4 py-2 rounded-full text-sm text-[#111111] hover:bg-[#f7f7f7] transition"
+              className="hidden sm:flex bg-white border border-[#e5e7eb] px-4 py-2 rounded-full text-sm text-[#111111] hover:bg-[#f7f7f7] transition whitespace-nowrap"
             >
               + Create Community
             </Link>
@@ -131,6 +142,14 @@ export default function Navbar() {
             </>
           ) : (
             <>
+              {/* MESSAGES */}
+              <Link
+                href="/messages"
+                className="relative p-2 rounded-full hover:bg-black/5 transition"
+              >
+                <MessageCircle size={22} />
+              </Link>
+
               {/* NOTIFICATIONS */}
               <div className="relative" ref={dropdownRef}>
                 <button
@@ -172,14 +191,14 @@ export default function Navbar() {
               </div>
 
               {/* USERNAME */}
-              <p className="text-sm text-[#52525b] hidden sm:block">
+              <p className="text-sm text-[#52525b] hidden lg:block">
                 @{user.username || "user"}
               </p>
 
               {/* PROFILE */}
               <Link
                 href={`/profile/${user.username}`}
-                className="text-sm bg-black text-white px-4 py-2 rounded-full"
+                className="text-sm bg-black text-white px-4 py-2 rounded-full whitespace-nowrap"
               >
                 My Profile
               </Link>
@@ -187,7 +206,7 @@ export default function Navbar() {
               {/* LOGOUT */}
               <button
                 onClick={handleLogout}
-                className="bg-[#111111] text-white px-4 sm:px-5 py-2 rounded-full text-sm hover:opacity-90 transition"
+                className="bg-[#111111] text-white px-4 sm:px-5 py-2 rounded-full text-sm hover:opacity-90 transition whitespace-nowrap"
               >
                 Logout
               </button>

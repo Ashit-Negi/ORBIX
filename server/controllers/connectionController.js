@@ -363,3 +363,61 @@ exports.removeConnection = async (req, res) => {
     });
   }
 };
+
+// GET ACCEPTED CONNECTIONS
+exports.getAcceptedConnections = async (req, res) => {
+  try {
+    const currentUserId = req.user.userId;
+
+    const connections = await prisma.connection.findMany({
+      where: {
+        status: "ACCEPTED",
+
+        OR: [
+          {
+            senderId: currentUserId,
+          },
+
+          {
+            receiverId: currentUserId,
+          },
+        ],
+      },
+
+      include: {
+        sender: {
+          select: {
+            id: true,
+            username: true,
+            name: true,
+            image: true,
+          },
+        },
+
+        receiver: {
+          select: {
+            id: true,
+            username: true,
+            name: true,
+            image: true,
+          },
+        },
+      },
+    });
+
+    const formattedConnections = connections.map((connection) => {
+      const otherUser =
+        connection.senderId === currentUserId
+          ? connection.receiver
+          : connection.sender;
+
+      return otherUser;
+    });
+
+    res.json(formattedConnections);
+  } catch (error) {
+    res.status(500).json({
+      error: error.message,
+    });
+  }
+};

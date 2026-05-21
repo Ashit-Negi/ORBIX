@@ -7,11 +7,12 @@ export default function ProfileStats({ profile }) {
     },
 
     {
-      label: "Messages",
-      value: profile.counts.comments,
+      label: "Experience",
+
+      value: profile.experiences?.length || 0,
+
       color: "text-[#60a5fa]",
     },
-
     {
       label: "Communities",
       value: profile.counts.createdCommunities,
@@ -19,8 +20,8 @@ export default function ProfileStats({ profile }) {
     },
 
     {
-      label: "Upvotes",
-      value: 0,
+      label: "Connections",
+      value: profile.counts.connections,
       color: "text-[#fb7185]",
     },
   ];

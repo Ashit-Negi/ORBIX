@@ -60,6 +60,13 @@ exports.getUserProfile = async (req, res) => {
           },
         },
 
+        // EXPERIENCES
+        experiences: {
+          orderBy: {
+            startDate: "desc",
+          },
+        },
+
         _count: {
           select: {
             posts: true,
@@ -128,6 +135,9 @@ exports.getUserProfile = async (req, res) => {
 
         memberships: user.memberships,
 
+        // EXPERIENCES
+        experiences: user.experiences,
+
         counts: {
           ...user._count,
 
@@ -177,7 +187,9 @@ exports.updateProfile = async (req, res) => {
     });
   } catch (error) {
     console.log("FULL ERROR:", JSON.stringify(error, null, 2));
+
     console.log("ERROR MESSAGE:", error.message);
+
     console.log("ERROR STACK:", error.stack);
 
     res.status(500).json({

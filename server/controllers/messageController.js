@@ -1,4 +1,4 @@
-const prisma = require("../prisma/client");
+const prisma = require("../config/db");
 
 // CREATE CONVERSATION
 exports.createConversation = async (req, res) => {
@@ -7,7 +7,21 @@ exports.createConversation = async (req, res) => {
 
     const { receiverId } = req.body;
 
-    // CHECK IF USERS ARE CONNECTED
+    // VALIDATION
+    if (!receiverId) {
+      return res.status(400).json({
+        message: "Receiver ID is required",
+      });
+    }
+
+    // SELF CHAT BLOCK
+    if (currentUserId === receiverId) {
+      return res.status(400).json({
+        message: "You cannot message yourself",
+      });
+    }
+
+    // CHECK CONNECTION
     const existingConnection = await prisma.connection.findFirst({
       where: {
         status: "ACCEPTED",
@@ -35,19 +49,36 @@ exports.createConversation = async (req, res) => {
     // CHECK EXISTING CONVERSATION
     const existingConversation = await prisma.conversation.findFirst({
       where: {
-        participants: {
-          every: {
-            userId: {
-              in: [currentUserId, receiverId],
+        AND: [
+          {
+            participants: {
+              some: {
+                userId: currentUserId,
+              },
             },
           },
-        },
+
+          {
+            participants: {
+              some: {
+                userId: receiverId,
+              },
+            },
+          },
+        ],
       },
 
       include: {
         participants: {
           include: {
-            user: true,
+            user: {
+              select: {
+                id: true,
+                username: true,
+                name: true,
+                image: true,
+              },
+            },
           },
         },
 
@@ -61,10 +92,8 @@ exports.createConversation = async (req, res) => {
       },
     });
 
-    if (
-      existingConversation &&
-      existingConversation.participants.length === 2
-    ) {
+    // RETURN EXISTING CONVERSATION
+    if (existingConversation) {
       return res.status(200).json(existingConversation);
     }
 
@@ -87,11 +116,24 @@ exports.createConversation = async (req, res) => {
       include: {
         participants: {
           include: {
-            user: true,
+            user: {
+              select: {
+                id: true,
+                username: true,
+                name: true,
+                image: true,
+              },
+            },
           },
         },
 
-        messages: true,
+        messages: {
+          orderBy: {
+            createdAt: "desc",
+          },
+
+          take: 1,
+        },
       },
     });
 
@@ -112,15 +154,22 @@ exports.sendMessage = async (req, res) => {
 
     const { conversationId, text } = req.body;
 
+    // VALIDATION
+    if (!conversationId) {
+      return res.status(400).json({
+        message: "Conversation ID required",
+      });
+    }
+
     if (!text || !text.trim()) {
       return res.status(400).json({
-        message: "Message text is required",
+        message: "Message text required",
       });
     }
 
     const io = req.app.get("io");
 
-    // CHECK CONVERSATION EXISTS
+    // CHECK CONVERSATION
     const conversation = await prisma.conversation.findUnique({
       where: {
         id: conversationId,
@@ -137,7 +186,7 @@ exports.sendMessage = async (req, res) => {
       });
     }
 
-    // CHECK USER IS PARTICIPANT
+    // SECURITY CHECK
     const isParticipant = conversation.participants.some(
       (participant) => participant.userId === senderId,
     );
@@ -151,7 +200,7 @@ exports.sendMessage = async (req, res) => {
     // CREATE MESSAGE
     const message = await prisma.message.create({
       data: {
-        text,
+        text: text.trim(),
 
         senderId,
 
@@ -170,8 +219,25 @@ exports.sendMessage = async (req, res) => {
       },
     });
 
-    // REALTIME EMIT
+    // UPDATE CONVERSATION
+    await prisma.conversation.update({
+      where: {
+        id: conversationId,
+      },
+
+      data: {
+        updatedAt: new Date(),
+      },
+    });
+
+    // REALTIME MESSAGE
     io.to(conversationId).emit("receive-message", message);
+
+    // REALTIME SIDEBAR UPDATE
+    io.to(conversationId).emit("conversation-updated", {
+      conversationId,
+      lastMessage: message,
+    });
 
     res.status(201).json(message);
   } catch (error) {
@@ -221,7 +287,7 @@ exports.getUserConversations = async (req, res) => {
       },
 
       orderBy: {
-        createdAt: "desc",
+        updatedAt: "desc",
       },
     });
 
@@ -259,7 +325,7 @@ exports.getConversationMessages = async (req, res) => {
       });
     }
 
-    // CHECK ACCESS
+    // SECURITY CHECK
     const isParticipant = conversation.participants.some(
       (participant) => participant.userId === currentUserId,
     );
@@ -270,6 +336,7 @@ exports.getConversationMessages = async (req, res) => {
       });
     }
 
+    // GET MESSAGES
     const messages = await prisma.message.findMany({
       where: {
         conversationId,

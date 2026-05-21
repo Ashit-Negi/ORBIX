@@ -2,18 +2,29 @@
 
 import { useEffect, useState } from "react";
 
-import { Pencil, CalendarDays } from "lucide-react";
+import {
+  Pencil,
+  CalendarDays,
+  BriefcaseBusiness,
+  MessageCircle,
+} from "lucide-react";
 
 import API from "@/lib/api";
 
 import { io } from "socket.io-client";
 
+import { useRouter } from "next/navigation";
+
 const socket = io("http://localhost:5000");
 
 export default function ProfileSidebar({ profile, setIsEditOpen, isOwner }) {
+  const router = useRouter();
+
   const [connectionStatus, setConnectionStatus] = useState("NONE");
 
   const [loading, setLoading] = useState(false);
+
+  const [messageLoading, setMessageLoading] = useState(false);
 
   useEffect(() => {
     if (isOwner) return;
@@ -86,6 +97,25 @@ export default function ProfileSidebar({ profile, setIsEditOpen, isOwner }) {
     }
   };
 
+  // MESSAGE USER
+  const handleMessage = async () => {
+    try {
+      setMessageLoading(true);
+
+      const res = await API.post("/messages/conversation", {
+        receiverId: profile.id,
+      });
+
+      const conversation = res.data;
+
+      router.push(`/messages?conversation=${conversation.id}`);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setMessageLoading(false);
+    }
+  };
+
   return (
     <div className="dark-card glow rounded-[32px] p-6 sticky top-24">
       {/* PROFILE IMAGE */}
@@ -119,7 +149,7 @@ export default function ProfileSidebar({ profile, setIsEditOpen, isOwner }) {
           )}
         </p>
 
-        {/* EDIT BUTTON */}
+        {/* OWNER BUTTON */}
         {isOwner && (
           <button
             onClick={() => setIsEditOpen(true)}
@@ -130,14 +160,15 @@ export default function ProfileSidebar({ profile, setIsEditOpen, isOwner }) {
           </button>
         )}
 
-        {/* CONNECT BUTTON */}
+        {/* OTHER USER BUTTONS */}
         {!isOwner && (
-          <>
+          <div className="flex gap-3 mt-7 w-full">
+            {/* CONNECT BUTTON */}
             {connectionStatus === "ACCEPTED" ? (
               <button
                 onClick={removeConnection}
                 disabled={loading}
-                className="mt-7 bg-red-500 hover:bg-red-600 transition-all duration-300 px-6 py-3 rounded-2xl font-semibold"
+                className="flex-1 bg-red-500 hover:bg-red-600 transition-all duration-300 px-6 py-3 rounded-2xl font-semibold"
               >
                 {loading ? "Loading..." : "Disconnect"}
               </button>
@@ -145,7 +176,7 @@ export default function ProfileSidebar({ profile, setIsEditOpen, isOwner }) {
               <button
                 onClick={sendConnectionRequest}
                 disabled={loading || connectionStatus === "PENDING"}
-                className="mt-7 bg-[#22c55e] hover:bg-[#16a34a] disabled:opacity-60 transition-all duration-300 px-6 py-3 rounded-2xl font-semibold"
+                className="flex-1 bg-[#22c55e] hover:bg-[#16a34a] disabled:opacity-60 transition-all duration-300 px-6 py-3 rounded-2xl font-semibold"
               >
                 {loading
                   ? "Loading..."
@@ -154,7 +185,16 @@ export default function ProfileSidebar({ profile, setIsEditOpen, isOwner }) {
                     : "Connect"}
               </button>
             )}
-          </>
+
+            {/* MESSAGE BUTTON */}
+            <button
+              onClick={handleMessage}
+              disabled={messageLoading || connectionStatus !== "ACCEPTED"}
+              className="px-5 py-3 rounded-2xl border border-white/10 hover:border-[#22c55e]/30 hover:bg-[#22c55e]/10 transition-all duration-300 disabled:opacity-50 flex items-center justify-center"
+            >
+              <MessageCircle size={20} />
+            </button>
+          </div>
         )}
       </div>
 
@@ -170,10 +210,10 @@ export default function ProfileSidebar({ profile, setIsEditOpen, isOwner }) {
 
         <div className="p-6 border-b border-white/5">
           <h2 className="text-4xl font-bold text-[#a5b4fc]">
-            {profile.counts.comments}
+            {profile.experiences?.length || 0}
           </h2>
 
-          <p className="text-[#9ca3af] mt-2">Messages</p>
+          <p className="text-[#9ca3af] mt-2">Experience</p>
         </div>
 
         <div className="p-6 border-r border-white/5">
