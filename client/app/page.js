@@ -21,6 +21,39 @@ export default function Home() {
 
   const [content, setContent] = useState("");
 
+  // FETCH POSTS
+  const fetchPosts = async () => {
+    try {
+      const res = await API.get("/posts");
+
+      setPosts(res.data);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  // FETCH COMMUNITIES
+  const fetchCommunities = async () => {
+    try {
+      const res = await API.get("/communities");
+
+      setCommunities(res.data);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  // FETCH SUGGESTED USERS
+  const fetchSuggestedUsers = async () => {
+    try {
+      const res = await API.get("/users/suggested");
+
+      setSuggestedUsers(res.data);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   useEffect(() => {
     fetchPosts();
 
@@ -86,39 +119,6 @@ export default function Home() {
       socket.off("new-community", handleNewCommunity);
     };
   }, []);
-
-  // FETCH POSTS
-  const fetchPosts = async () => {
-    try {
-      const res = await API.get("/posts");
-
-      setPosts(res.data);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  // FETCH COMMUNITIES
-  const fetchCommunities = async () => {
-    try {
-      const res = await API.get("/communities");
-
-      setCommunities(res.data);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  // FETCH SUGGESTED USERS
-  const fetchSuggestedUsers = async () => {
-    try {
-      const res = await API.get("/users/suggested");
-
-      setSuggestedUsers(res.data);
-    } catch (error) {
-      console.log(error);
-    }
-  };
 
   // CREATE POST
   const handleCreatePost = async () => {
