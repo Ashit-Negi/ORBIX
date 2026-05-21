@@ -20,6 +20,13 @@ export default function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // NO SPACES IN USERNAME
+    if (formData.username.includes(" ")) {
+      alert("Username cannot contain spaces");
+
+      return;
+    }
+
     try {
       const res = await API.post("/auth/register", formData);
 

@@ -7,20 +7,36 @@ import API from "../lib/api";
 import CommentSection from "./comments/CommentSection";
 
 import socket from "../lib/socket";
+import Link from "next/link";
 
 export default function PostCard({
   id,
   author,
+  authorId,
   title,
   content,
   commentCount,
   votes,
+  community,
+  onDelete,
 }) {
   const [showComments, setShowComments] = useState(false);
 
   const [localVotes, setLocalVotes] = useState(votes || []);
 
   const [localCommentCount, setLocalCommentCount] = useState(commentCount || 0);
+
+  const [isEditing, setIsEditing] = useState(false);
+
+  const [editedTitle, setEditedTitle] = useState(title);
+
+  const [editedContent, setEditedContent] = useState(content);
+
+  const [localTitle, setLocalTitle] = useState(title);
+
+  const [localContent, setLocalContent] = useState(content);
+
+  const [showMenu, setShowMenu] = useState(false);
 
   // SYNC VOTES ONLY
   useEffect(() => {
@@ -39,6 +55,9 @@ export default function PostCard({
 
     loggedInUserId = payload.userId;
   }
+
+  // OWNER CHECK
+  const isOwner = loggedInUserId === authorId;
 
   // REALTIME POST LIKE
   useEffect(() => {
@@ -79,9 +98,29 @@ export default function PostCard({
   useEffect(() => {
     const syncCommentCount = async () => {
       try {
-        const res = await API.get("/posts");
+        let updatedPost = null;
 
-        const updatedPost = res.data.find((post) => post.id === id);
+        // COMMUNITY POST
+        if (community?.slug) {
+          const token = localStorage.getItem("token");
+
+          const res = await API.get(`/communities/${community.slug}/posts`, {
+            headers: token
+              ? {
+                  Authorization: `Bearer ${token}`,
+                }
+              : {},
+          });
+
+          updatedPost = res.data.posts.find((post) => post.id === id);
+        }
+
+        // GLOBAL POST
+        else {
+          const res = await API.get("/posts");
+
+          updatedPost = res.data.find((post) => post.id === id);
+        }
 
         if (updatedPost) {
           setLocalCommentCount(updatedPost.commentCount || 0);
@@ -90,7 +129,6 @@ export default function PostCard({
         console.log(error);
       }
     };
-
     const handleNewComment = (data) => {
       if (data.postId === id) {
         syncCommentCount();
@@ -113,6 +151,35 @@ export default function PostCard({
       socket.off("comment-deleted", handleDeleteComment);
     };
   }, [id]);
+
+  // REALTIME POST UPDATE + DELETE
+  useEffect(() => {
+    const handlePostUpdated = (updatedPost) => {
+      if (updatedPost.id !== id) return;
+
+      setLocalTitle(updatedPost.title);
+
+      setLocalContent(updatedPost.content);
+    };
+
+    const handlePostDeleted = (data) => {
+      if (data.postId !== id) return;
+
+      if (onDelete) {
+        onDelete(id);
+      }
+    };
+
+    socket.on("post-updated", handlePostUpdated);
+
+    socket.on("post-deleted", handlePostDeleted);
+
+    return () => {
+      socket.off("post-updated", handlePostUpdated);
+
+      socket.off("post-deleted", handlePostDeleted);
+    };
+  }, [id, onDelete]);
 
   const score = localVotes.length;
 
@@ -172,8 +239,8 @@ export default function PostCard({
     if (navigator.share) {
       try {
         await navigator.share({
-          title,
-          text: content,
+          title: localTitle,
+          text: localContent,
           url: shareUrl,
         });
       } catch (error) {
@@ -186,30 +253,162 @@ export default function PostCard({
     }
   };
 
+  // HANDLE DELETE
+  const handleDelete = async () => {
+    try {
+      const confirmDelete = window.confirm(
+        "Are you sure you want to delete this post?",
+      );
+
+      if (!confirmDelete) return;
+
+      // OPTIMISTIC DELETE
+      if (onDelete) {
+        onDelete(id);
+      }
+
+      await API.delete(`/posts/delete/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+    } catch (error) {
+      console.log(error);
+
+      alert("Failed to delete post");
+    }
+  };
+
+  // HANDLE EDIT
+  const handleEdit = async () => {
+    try {
+      // OPTIMISTIC UPDATE
+      setLocalTitle(editedTitle);
+
+      setLocalContent(editedContent);
+
+      await API.put(
+        `/posts/edit/${id}`,
+        {
+          title: editedTitle,
+          content: editedContent,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      setIsEditing(false);
+    } catch (error) {
+      console.log(error);
+
+      alert("Failed to update post");
+    }
+  };
+
   return (
     <div className="bg-white border border-[#e5e7eb] rounded-3xl p-4 sm:p-6">
       {/* HEADER */}
-      <div className="flex items-center gap-3 mb-5">
-        <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#ececeb]"></div>
+      <div className="flex items-start justify-between mb-5">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#ececeb]"></div>
 
-        <div>
-          <h3 className="font-medium text-[#111111] text-sm sm:text-base">
-            {author}
-          </h3>
+          <div>
+            <Link
+              href={`/profile/${author}`}
+              className="font-medium text-[#111111] text-sm sm:text-base hover:underline"
+            >
+              {author}
+            </Link>
 
-          <p className="text-xs text-[#6b7280]">Community Member</p>
+            <div className="flex items-center gap-2 text-xs text-[#6b7280]">
+              {community && (
+                <p>
+                  Posted in{" "}
+                  <span className="text-[#111111] font-medium">
+                    r/{community.slug}
+                  </span>
+                </p>
+              )}
+            </div>
+          </div>
         </div>
+
+        {/* 3 DOT MENU */}
+        {isOwner && (
+          <div className="relative">
+            <button
+              onClick={() => setShowMenu(!showMenu)}
+              className="w-9 h-9 rounded-full hover:bg-[#f7f7f7] transition text-[#6b7280] text-xl"
+            >
+              ⋯
+            </button>
+
+            {showMenu && (
+              <div className="absolute right-0 top-11 bg-white border border-[#e5e7eb] rounded-2xl shadow-lg p-2 w-40 z-50">
+                <button
+                  onClick={() => {
+                    setIsEditing(true);
+
+                    setShowMenu(false);
+                  }}
+                  className="w-full text-left px-3 py-2 rounded-xl hover:bg-[#f7f7f7] text-sm"
+                >
+                  ✏ Edit Post
+                </button>
+
+                <button
+                  onClick={handleDelete}
+                  className="w-full text-left px-3 py-2 rounded-xl hover:bg-[#fef2f2] text-sm text-red-500"
+                >
+                  🗑 Delete Post
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* TITLE */}
-      <h2 className="text-[22px] sm:text-[28px] leading-[30px] sm:leading-[36px] font-semibold tracking-tight text-[#111111] mb-4 break-words">
-        {title}
-      </h2>
+      {isEditing ? (
+        <input
+          type="text"
+          value={editedTitle}
+          onChange={(e) => setEditedTitle(e.target.value)}
+          className="w-full bg-[#f7f7f7] border border-[#e5e7eb] rounded-2xl px-4 py-3 outline-none mb-4"
+        />
+      ) : (
+        <h2 className="text-[22px] sm:text-[28px] leading-[30px] sm:leading-[36px] font-semibold tracking-tight text-[#111111] mb-4 break-words">
+          {localTitle}
+        </h2>
+      )}
 
       {/* CONTENT */}
-      <p className="text-[#52525b] leading-7 sm:leading-8 text-[14px] sm:text-[15px] break-words">
-        {content}
-      </p>
+      {isEditing ? (
+        <textarea
+          value={editedContent}
+          onChange={(e) => setEditedContent(e.target.value)}
+          className="w-full bg-[#f7f7f7] border border-[#e5e7eb] rounded-2xl px-4 py-3 outline-none resize-none h-32"
+        />
+      ) : (
+        <p className="text-[#52525b] leading-7 sm:leading-8 text-[14px] sm:text-[15px] break-words">
+          {localContent}
+        </p>
+      )}
+
+      {/* SAVE BUTTON */}
+      {isEditing && (
+        <div className="flex justify-end mt-4">
+          <button
+            onClick={handleEdit}
+            className="bg-black text-white px-5 py-2 rounded-full text-sm"
+          >
+            Save Changes
+          </button>
+        </div>
+      )}
 
       {/* STATS */}
       <div className="flex items-center justify-between mt-6 sm:mt-8 pb-4 border-b border-[#e5e7eb] text-sm text-[#6b7280]">

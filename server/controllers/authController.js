@@ -7,6 +7,11 @@ exports.register = async (req, res) => {
   try {
     const { email, username, password } = req.body;
 
+    if (username.includes(" ")) {
+      return res.status(400).json({
+        message: "Username cannot contain spaces",
+      });
+    }
     // 1. Check if user exists
     const existingUser = await prisma.user.findUnique({
       where: { email },
@@ -63,9 +68,16 @@ exports.login = async (req, res) => {
     }
 
     // 3. Generate token
-    const token = jwt.sign({ userId: user.id }, "secretkey", {
-      expiresIn: "7d",
-    });
+    const token = jwt.sign(
+      {
+        userId: user.id,
+        username: user.username,
+      },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "7d",
+      },
+    );
 
     // 4. Send response
     res.json({
