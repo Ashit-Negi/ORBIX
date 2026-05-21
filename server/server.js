@@ -29,7 +29,12 @@ const io = initializeSocket(server);
 // MAKE IO AVAILABLE EVERYWHERE
 app.set("io", io);
 
-app.use(cors());
+app.use(
+  cors({
+    origin: process.env.CLIENT_URL,
+    credentials: true,
+  }),
+);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -56,4 +61,3 @@ const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
-console.log(process.env.JWT_SECRET);
