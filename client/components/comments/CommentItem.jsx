@@ -116,9 +116,6 @@ export default function CommentItem({
       console.log(error);
     }
   };
-  useEffect(() => {
-    setVisibleReplies(2);
-  }, [comment.replies]);
 
   return (
     <div

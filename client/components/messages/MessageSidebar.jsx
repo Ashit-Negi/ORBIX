@@ -30,6 +30,27 @@ export default function MessageSidebar({
     return token ? JSON.parse(atob(token.split(".")[1])) : null;
   }, []);
 
+  // FETCH SIDEBAR DATA
+  const fetchSidebarData = async () => {
+    try {
+      setLoading(true);
+
+      const [conversationRes, connectionRes] = await Promise.all([
+        API.get("/messages/conversations"),
+
+        API.get("/connections/accepted"),
+      ]);
+
+      setConversations(conversationRes.data);
+
+      setConnections(connectionRes.data);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // INITIAL FETCH
   useEffect(() => {
     fetchSidebarData();
@@ -95,27 +116,6 @@ export default function MessageSidebar({
       socket.off("conversation-updated", handleConversationUpdate);
     };
   }, [socket]);
-
-  // FETCH SIDEBAR DATA
-  const fetchSidebarData = async () => {
-    try {
-      setLoading(true);
-
-      const [conversationRes, connectionRes] = await Promise.all([
-        API.get("/messages/conversations"),
-
-        API.get("/connections/accepted"),
-      ]);
-
-      setConversations(conversationRes.data);
-
-      setConnections(connectionRes.data);
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // FILTER CONNECTIONS
   const filteredConnections = useMemo(() => {

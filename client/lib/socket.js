@@ -1,18 +1,32 @@
 import { io } from "socket.io-client";
 
-const socket = io(
-  process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:5000",
-  {
-    transports: ["websocket"],
+const SOCKET_URL =
+  process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:5000";
 
-    autoConnect: false,
+const socket = io(SOCKET_URL, {
+  transports: ["websocket"],
 
-    reconnection: true,
+  autoConnect: false,
 
-    reconnectionAttempts: 5,
+  reconnection: true,
 
-    reconnectionDelay: 1000,
-  },
-);
+  reconnectionAttempts: 5,
+
+  reconnectionDelay: 1000,
+});
+
+// CONNECT HELPER
+export const connectSocket = () => {
+  if (!socket.connected) {
+    socket.connect();
+  }
+};
+
+// DISCONNECT HELPER
+export const disconnectSocket = () => {
+  if (socket.connected) {
+    socket.disconnect();
+  }
+};
 
 export default socket;

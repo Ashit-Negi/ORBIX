@@ -13,6 +13,19 @@ export default function CommunitiesPage() {
 
   const [loading, setLoading] = useState(true);
 
+  // FETCH COMMUNITIES
+  const fetchCommunities = async () => {
+    try {
+      const res = await API.get("/communities");
+
+      setCommunities(res.data);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchCommunities();
   }, []);
@@ -86,18 +99,6 @@ export default function CommunitiesPage() {
       socket.off("community-left", handleCommunityLeft);
     };
   }, []);
-
-  const fetchCommunities = async () => {
-    try {
-      const res = await API.get("/communities");
-
-      setCommunities(res.data);
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <main className="min-h-screen bg-[#f3f3f1] px-4 py-10">

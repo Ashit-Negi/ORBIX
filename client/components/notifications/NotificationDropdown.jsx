@@ -2,13 +2,12 @@
 
 import { useEffect, useState } from "react";
 
-import { io } from "socket.io-client";
+import socket from "@/lib/socket";
 
 import API from "@/lib/api";
 
 import NotificationCard from "./NotificationCard";
 
-const socket = io("http://localhost:5000");
 
 export default function NotificationDropdown({
   setNotificationCount,

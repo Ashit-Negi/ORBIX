@@ -99,49 +99,15 @@ export default function PostCard({
 
   // REALTIME COMMENT COUNT
   useEffect(() => {
-    const syncCommentCount = async () => {
-      try {
-        let updatedPost = null;
-
-        // COMMUNITY POST
-        if (community?.slug) {
-          const token = localStorage.getItem("token");
-
-          const res = await API.get(`/communities/${community.slug}/posts`, {
-            headers: token
-              ? {
-                  Authorization: `Bearer ${token}`,
-                }
-              : {},
-          });
-
-          updatedPost = res.data.posts.find((post) => post.id === id);
-        }
-
-        // GLOBAL POST
-        else {
-          const res = await API.get("/posts");
-
-          updatedPost = res.data.find((post) => post.id === id);
-        }
-
-        if (updatedPost) {
-          setLocalCommentCount(updatedPost.commentCount || 0);
-        }
-      } catch (error) {
-        console.log(error);
-      }
-    };
-
     const handleNewComment = (data) => {
       if (data.postId === id) {
-        syncCommentCount();
+        setLocalCommentCount((prev) => prev + 1);
       }
     };
 
     const handleDeleteComment = (data) => {
       if (data.postId === id) {
-        syncCommentCount();
+        setLocalCommentCount((prev) => Math.max(0, prev - 1));
       }
     };
 
@@ -303,6 +269,10 @@ export default function PostCard({
           },
         },
       );
+
+      setEditedTitle(editedTitle);
+
+      setEditedContent(editedContent);
 
       setIsEditing(false);
     } catch (error) {

@@ -15,10 +15,7 @@ export default function SinglePostPage() {
 
   const [post, setPost] = useState(null);
 
-  useEffect(() => {
-    fetchPost();
-  }, []);
-
+  // FETCH POST
   const fetchPost = async () => {
     try {
       const res = await API.get(`/posts/${postId}`);
@@ -28,6 +25,10 @@ export default function SinglePostPage() {
       console.log(error);
     }
   };
+
+  useEffect(() => {
+    fetchPost();
+  }, []);
 
   if (!post) {
     return <div className="p-10">Loading...</div>;

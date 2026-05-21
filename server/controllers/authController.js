@@ -42,7 +42,12 @@ exports.register = async (req, res) => {
       },
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.log("REGISTER ERROR:", error);
+
+    return res.status(500).json({
+      message: error.message,
+      stack: error.stack,
+    });
   }
 };
 
@@ -90,6 +95,11 @@ exports.login = async (req, res) => {
       },
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.log("LOGIN ERROR:", error);
+
+    return res.status(500).json({
+      message: error.message,
+      stack: error.stack,
+    });
   }
 };

@@ -35,6 +35,18 @@ export default function ProfilePage() {
   const [loggedInUsername, setLoggedInUsername] = useState(null);
 
   // FETCH PROFILE
+  const fetchProfile = async () => {
+    try {
+      const res = await API.get(`/profile/${username}`);
+
+      setProfile(res.data.user);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchProfile();
   }, [username]);
@@ -56,12 +68,10 @@ export default function ProfilePage() {
       setProfile((prev) => {
         if (!prev) return prev;
 
-        // ONLY UPDATE SAME PROFILE
         if (data.userId !== prev.id) {
           return prev;
         }
 
-        // CONNECTION ACCEPTED
         if (data.status === "ACCEPTED") {
           return {
             ...prev,
@@ -74,7 +84,6 @@ export default function ProfilePage() {
           };
         }
 
-        // CONNECTION REMOVED
         if (data.status === "NONE") {
           return {
             ...prev,
@@ -95,18 +104,6 @@ export default function ProfilePage() {
       socket.off("connection-updated");
     };
   }, []);
-
-  const fetchProfile = async () => {
-    try {
-      const res = await API.get(`/profile/${username}`);
-
-      setProfile(res.data.user);
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // LOADING
   if (loading) {

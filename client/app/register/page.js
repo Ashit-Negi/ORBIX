@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+
 import API from "../../lib/api";
 
 export default function Register() {
@@ -31,6 +32,8 @@ export default function Register() {
       const res = await API.post("/auth/register", formData);
 
       alert(res.data.message);
+
+      window.location.href = "/login";
     } catch (error) {
       alert(error.response?.data?.message || "Something went wrong");
     }
@@ -55,6 +58,7 @@ export default function Register() {
             onChange={handleChange}
             className="w-full bg-[#f7f7f7] border border-[#e5e7eb] rounded-2xl px-4 py-3 outline-none focus:bg-white focus:border-[#d1d5db] transition"
           />
+
           <input
             type="email"
             name="email"
@@ -75,6 +79,16 @@ export default function Register() {
             Create Account
           </button>
         </form>
+
+        <p className="text-sm text-[#6b7280] text-center mt-5">
+          Already have an account?{" "}
+          <a
+            href="/login"
+            className="text-[#111111] font-medium hover:underline"
+          >
+            Login
+          </a>
+        </p>
       </div>
     </div>
   );

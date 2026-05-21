@@ -33,15 +33,52 @@ export default function SingleCommunityPage() {
 
   const [visibility, setVisibility] = useState("PUBLIC");
 
+  // FETCH COMMUNITY
+  const fetchCommunity = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const res = await API.get(`/communities/${slug}/posts`, {
+        headers: token
+          ? {
+              Authorization: `Bearer ${token}`,
+            }
+          : {},
+      });
+
+      setCommunity(res.data.community);
+
+      setPosts(res.data.posts);
+
+      if (token) {
+        const payload = JSON.parse(atob(token.split(".")[1]));
+
+        const userId = payload.userId;
+
+        const admin = res.data.community.creatorId === userId;
+
+        setIsAdmin(admin);
+
+        const joinedAlready = res.data.community.memberships?.find(
+          (member) => member.userId === userId,
+        );
+
+        setJoined(!!joinedAlready);
+      }
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchCommunity();
   }, [slug]);
 
   // REALTIME SOCKETS
   useEffect(() => {
-    // NEW POST
     const handleNewPost = (newPost) => {
-      // ONLY THIS COMMUNITY
       if (newPost.community?.slug !== slug) return;
 
       setPosts((prev) => {
@@ -49,7 +86,6 @@ export default function SingleCommunityPage() {
 
         if (exists) return prev;
 
-        // MEMBERS ONLY CHECK
         if (newPost.visibility === "MEMBERS_ONLY" && !joined && !isAdmin) {
           return prev;
         }
@@ -57,7 +93,6 @@ export default function SingleCommunityPage() {
         return [newPost, ...prev];
       });
 
-      // POSTS COUNT
       setCommunity((prev) => ({
         ...prev,
 
@@ -69,7 +104,6 @@ export default function SingleCommunityPage() {
       }));
     };
 
-    // UPDATE POST
     const handleUpdatedPost = (updatedPost) => {
       if (updatedPost.community?.slug !== slug) return;
 
@@ -78,7 +112,6 @@ export default function SingleCommunityPage() {
       );
     };
 
-    // DELETE POST
     const handleDeletePost = ({ postId }) => {
       setPosts((prev) => prev.filter((post) => post.id !== postId));
 
@@ -93,7 +126,6 @@ export default function SingleCommunityPage() {
       }));
     };
 
-    // JOIN COMMUNITY
     const handleCommunityJoined = ({ communityId }) => {
       if (communityId !== community?.id) return;
 
@@ -108,7 +140,6 @@ export default function SingleCommunityPage() {
       }));
     };
 
-    // LEAVE COMMUNITY
     const handleCommunityLeft = ({ communityId }) => {
       if (communityId !== community?.id) return;
 
@@ -145,48 +176,6 @@ export default function SingleCommunityPage() {
       socket.off("community-left", handleCommunityLeft);
     };
   }, [slug, joined, isAdmin, community]);
-
-  const fetchCommunity = async () => {
-    try {
-      // GET TOKEN
-      const token = localStorage.getItem("token");
-
-      const res = await API.get(`/communities/${slug}/posts`, {
-        headers: token
-          ? {
-              Authorization: `Bearer ${token}`,
-            }
-          : {},
-      });
-
-      setCommunity(res.data.community);
-
-      setPosts(res.data.posts);
-
-      // CHECK USER
-      if (token) {
-        const payload = JSON.parse(atob(token.split(".")[1]));
-
-        const userId = payload.userId;
-
-        // CHECK ADMIN
-        const admin = res.data.community.creatorId === userId;
-
-        setIsAdmin(admin);
-
-        // CHECK JOINED
-        const joinedAlready = res.data.community.memberships?.find(
-          (member) => member.userId === userId,
-        );
-
-        setJoined(!!joinedAlready);
-      }
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // JOIN COMMUNITY
   const handleJoin = async () => {
@@ -240,18 +229,6 @@ export default function SingleCommunityPage() {
     }
   };
 
-  if (loading) {
-    return (
-      <main className="p-10 text-sm text-[#6b7280]">Loading community...</main>
-    );
-  }
-
-  if (!community) {
-    return (
-      <main className="p-10 text-sm text-red-500">Community not found</main>
-    );
-  }
-
   // CREATE POST
   const handleCreatePost = async () => {
     try {
@@ -277,7 +254,6 @@ export default function SingleCommunityPage() {
           title,
           content,
 
-          // AUTO COMMUNITY
           communityId: community.id,
 
           visibility,
@@ -289,7 +265,6 @@ export default function SingleCommunityPage() {
         },
       );
 
-      // CLEAR INPUTS
       setTitle("");
 
       setContent("");
@@ -303,6 +278,18 @@ export default function SingleCommunityPage() {
       setCreatingPost(false);
     }
   };
+
+  if (loading) {
+    return (
+      <main className="p-10 text-sm text-[#6b7280]">Loading community...</main>
+    );
+  }
+
+  if (!community) {
+    return (
+      <main className="p-10 text-sm text-red-500">Community not found</main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-[#f3f3f1] px-4 py-10">
@@ -328,7 +315,6 @@ export default function SingleCommunityPage() {
               </div>
             </div>
 
-            {/* JOIN BUTTON */}
             {joined ? (
               <button
                 onClick={handleLeave}
@@ -354,7 +340,6 @@ export default function SingleCommunityPage() {
               Create Post in r/{community.slug}
             </h2>
 
-            {/* TITLE */}
             <input
               type="text"
               placeholder="Post title"
@@ -363,7 +348,6 @@ export default function SingleCommunityPage() {
               className="w-full bg-[#f7f7f7] border border-[#e5e7eb] rounded-2xl px-4 py-3 outline-none mb-3"
             />
 
-            {/* CONTENT */}
             <textarea
               placeholder="Share something with the community..."
               value={content}
@@ -371,7 +355,6 @@ export default function SingleCommunityPage() {
               className="w-full bg-[#f7f7f7] border border-[#e5e7eb] rounded-2xl px-4 py-3 outline-none resize-none h-32"
             />
 
-            {/* VISIBILITY */}
             <select
               value={visibility}
               onChange={(e) => setVisibility(e.target.value)}
@@ -382,7 +365,6 @@ export default function SingleCommunityPage() {
               <option value="MEMBERS_ONLY">🔒 Members Only</option>
             </select>
 
-            {/* ACTION */}
             <div className="flex justify-end mt-4">
               <button
                 onClick={handleCreatePost}

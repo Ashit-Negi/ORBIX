@@ -68,6 +68,16 @@ export default function Login() {
             Login
           </button>
         </form>
+
+        <p className="text-sm text-[#6b7280] text-center mt-5">
+          Don't have an account?{" "}
+          <a
+            href="/register"
+            className="text-[#111111] font-medium hover:underline"
+          >
+            Register
+          </a>
+        </p>
       </div>
     </div>
   );

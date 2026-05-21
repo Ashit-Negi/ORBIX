@@ -10,12 +10,8 @@ import {
 } from "lucide-react";
 
 import API from "@/lib/api";
-
-import { io } from "socket.io-client";
-
+import socket from "@/lib/socket";
 import { useRouter } from "next/navigation";
-
-const socket = io("http://localhost:5000");
 
 export default function ProfileSidebar({ profile, setIsEditOpen, isOwner }) {
   const router = useRouter();

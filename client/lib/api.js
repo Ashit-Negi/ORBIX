@@ -5,14 +5,22 @@ const API = axios.create({
 });
 
 // ADD TOKEN AUTOMATICALLY
-API.interceptors.request.use((req) => {
-  const token = localStorage.getItem("token");
+API.interceptors.request.use(
+  (req) => {
+    // CHECK WINDOW
+    if (typeof window !== "undefined") {
+      const token = localStorage.getItem("token");
 
-  if (token) {
-    req.headers.Authorization = `Bearer ${token}`;
-  }
+      if (token) {
+        req.headers.Authorization = `Bearer ${token}`;
+      }
+    }
 
-  return req;
-});
+    return req;
+  },
+  (error) => {
+    return Promise.reject(error);
+  },
+);
 
 export default API;

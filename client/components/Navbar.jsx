@@ -42,9 +42,7 @@ export default function Navbar() {
       }
     }
 
-    return () => {
-      socket.disconnect();
-    };
+    return () => {};
   }, []);
 
   // REALTIME NOTIFICATIONS

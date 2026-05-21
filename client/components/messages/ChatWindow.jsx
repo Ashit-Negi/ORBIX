@@ -29,6 +29,21 @@ export default function ChatWindow({ selectedConversation }) {
     (participant) => participant.user.id !== currentUser?.userId,
   )?.user;
 
+  // FETCH MESSAGES
+  const fetchMessages = async () => {
+    try {
+      setLoading(true);
+
+      const res = await API.get(`/messages/${selectedConversation.id}`);
+
+      setMessages(res.data);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // SOCKET CONNECT
   useEffect(() => {
     if (!socket.connected) {
@@ -87,21 +102,6 @@ export default function ChatWindow({ selectedConversation }) {
       behavior: "smooth",
     });
   }, [messages]);
-
-  // FETCH MESSAGES
-  const fetchMessages = async () => {
-    try {
-      setLoading(true);
-
-      const res = await API.get(`/messages/${selectedConversation.id}`);
-
-      setMessages(res.data);
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <div className="flex flex-col h-full bg-[#fafafa]">
