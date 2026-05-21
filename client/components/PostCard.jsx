@@ -234,7 +234,7 @@ export default function PostCard({
 
   // HANDLE SHARE
   const handleShare = async () => {
-    const shareUrl = `${window.location.origin}/post/${id}`;
+    const shareUrl = `${window.location.origin}/posts/${id}`;
 
     if (navigator.share) {
       try {

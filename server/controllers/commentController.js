@@ -1,5 +1,5 @@
 const prisma = require("../config/db");
-
+const sendNotification = require("../utils/sendNotification");
 // CREATE COMMENT
 exports.createComment = async (req, res) => {
   try {
@@ -45,7 +45,70 @@ exports.createComment = async (req, res) => {
         },
       },
     });
+    // GET POST
+    const post = await prisma.post.findUnique({
+      where: {
+        id: postId,
+      },
 
+      select: {
+        authorId: true,
+      },
+    });
+
+    // COMMENT NOTIFICATION
+    // COMMENT NOTIFICATION
+    if (!parentId && post.authorId !== req.user.userId) {
+      const io = req.app.get("io");
+
+      await sendNotification({
+        io,
+
+        type: "POST_COMMENT",
+
+        senderId: req.user.userId,
+
+        receiverId: post.authorId,
+
+        postId,
+
+        commentId: comment.id,
+
+        message: `${req.user.username} commented on your post`,
+      });
+    }
+    // REPLY NOTIFICATION
+    if (parentId) {
+      const parentComment = await prisma.comment.findUnique({
+        where: {
+          id: parentId,
+        },
+
+        select: {
+          authorId: true,
+        },
+      });
+
+      if (parentComment && parentComment.authorId !== req.user.userId) {
+        const io = req.app.get("io");
+
+        await sendNotification({
+          io,
+
+          type: "COMMENT_REPLY",
+
+          senderId: req.user.userId,
+
+          receiverId: parentComment.authorId,
+
+          postId,
+
+          commentId: parentId,
+
+          message: `${req.user.username} replied to your comment`,
+        });
+      }
+    }
     // SOCKET IO
     const io = req.app.get("io");
 
@@ -126,228 +189,153 @@ exports.getCommentsByPost = async (req, res) => {
 
     // TOP COMMENTS
     if (sort === "top") {
-      comments = comments.sort(
-        (a, b) =>
-          b.likes.length -
-          a.likes.length,
-      );
+      comments = comments.sort((a, b) => b.likes.length - a.likes.length);
     }
 
-    res.status(200).json(
-      comments,
-    );
+    res.status(200).json(comments);
   } catch (error) {
     res.status(500).json({
-      message:
-        error.message,
+      message: error.message,
     });
   }
 };
 
 // UPDATE COMMENT
-exports.updateComment = async (
-  req,
-  res,
-) => {
+exports.updateComment = async (req, res) => {
   try {
-    const { commentId } =
-      req.params;
+    const { commentId } = req.params;
 
-    const { content } =
-      req.body;
+    const { content } = req.body;
 
-    const existingComment =
-      await prisma.comment.findUnique(
-        {
-          where: {
-            id: commentId,
-          },
-        },
-      );
+    const existingComment = await prisma.comment.findUnique({
+      where: {
+        id: commentId,
+      },
+    });
 
     if (!existingComment) {
-      return res
-        .status(404)
-        .json({
-          message:
-            "Comment not found",
-        });
+      return res.status(404).json({
+        message: "Comment not found",
+      });
     }
 
     // OWNER CHECK
-    if (
-      existingComment.authorId !==
-      req.user.userId
-    ) {
-      return res
-        .status(403)
-        .json({
-          message:
-            "Unauthorized",
-        });
+    if (existingComment.authorId !== req.user.userId) {
+      return res.status(403).json({
+        message: "Unauthorized",
+      });
     }
 
-    const updatedComment =
-      await prisma.comment.update(
-        {
-          where: {
-            id: commentId,
-          },
+    const updatedComment = await prisma.comment.update({
+      where: {
+        id: commentId,
+      },
 
-          data: {
-            content,
-          },
-        },
-      );
+      data: {
+        content,
+      },
+    });
 
     // SOCKET IO
-    const io =
-      req.app.get("io");
+    const io = req.app.get("io");
 
     // REALTIME
-    io.emit(
-      "comment-updated",
-      {
-        commentId,
-        postId:
-          existingComment.postId,
-      },
-    );
+    io.emit("comment-updated", {
+      commentId,
+      postId: existingComment.postId,
+    });
 
     res.status(200).json({
-      message:
-        "Comment updated",
+      message: "Comment updated",
       updatedComment,
     });
   } catch (error) {
     res.status(500).json({
-      message:
-        error.message,
+      message: error.message,
     });
   }
 };
 
 // DELETE COMMENT
-exports.deleteComment = async (
-  req,
-  res,
-) => {
+exports.deleteComment = async (req, res) => {
   try {
-    const { commentId } =
-      req.params;
+    const { commentId } = req.params;
 
-    const existingComment =
-      await prisma.comment.findUnique(
-        {
-          where: {
-            id: commentId,
-          },
-        },
-      );
+    const existingComment = await prisma.comment.findUnique({
+      where: {
+        id: commentId,
+      },
+    });
 
     if (!existingComment) {
-      return res
-        .status(404)
-        .json({
-          message:
-            "Comment not found",
-        });
+      return res.status(404).json({
+        message: "Comment not found",
+      });
     }
 
     // OWNER CHECK
-    if (
-      existingComment.authorId !==
-      req.user.userId
-    ) {
-      return res
-        .status(403)
-        .json({
-          message:
-            "Unauthorized",
-        });
+    if (existingComment.authorId !== req.user.userId) {
+      return res.status(403).json({
+        message: "Unauthorized",
+      });
     }
 
     // FIND DIRECT REPLIES
-    const replies =
-      await prisma.comment.findMany(
-        {
-          where: {
-            parentId:
-              commentId,
-          },
-        },
-      );
+    const replies = await prisma.comment.findMany({
+      where: {
+        parentId: commentId,
+      },
+    });
 
     // GET REPLY IDS
-    const replyIds =
-      replies.map(
-        (reply) =>
-          reply.id,
-      );
+    const replyIds = replies.map((reply) => reply.id);
 
     // DELETE REPLY LIKES
-    await prisma.commentLike.deleteMany(
-      {
-        where: {
-          commentId: {
-            in: replyIds,
-          },
+    await prisma.commentLike.deleteMany({
+      where: {
+        commentId: {
+          in: replyIds,
         },
       },
-    );
+    });
 
     // DELETE REPLIES
-    await prisma.comment.deleteMany(
-      {
-        where: {
-          parentId:
-            commentId,
-        },
+    await prisma.comment.deleteMany({
+      where: {
+        parentId: commentId,
       },
-    );
+    });
 
     // DELETE MAIN COMMENT LIKES
-    await prisma.commentLike.deleteMany(
-      {
-        where: {
-          commentId,
-        },
+    await prisma.commentLike.deleteMany({
+      where: {
+        commentId,
       },
-    );
+    });
 
     // DELETE MAIN COMMENT
-    await prisma.comment.delete(
-      {
-        where: {
-          id: commentId,
-        },
+    await prisma.comment.delete({
+      where: {
+        id: commentId,
       },
-    );
+    });
 
     // SOCKET IO
-    const io =
-      req.app.get("io");
+    const io = req.app.get("io");
 
     // REALTIME
-    io.emit(
-      "comment-deleted",
-      {
-        commentId,
-        postId:
-          existingComment.postId,
-        deletedReplies:
-          replyIds.length,
-      },
-    );
+    io.emit("comment-deleted", {
+      commentId,
+      postId: existingComment.postId,
+      deletedReplies: replyIds.length,
+    });
 
     res.status(200).json({
-      message:
-        "Comment deleted",
+      message: "Comment deleted",
     });
   } catch (error) {
     res.status(500).json({
-      message:
-        error.message,
+      message: error.message,
     });
   }
 };

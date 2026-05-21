@@ -7,6 +7,7 @@ const {
   getPosts,
   editPost,
   deletePost,
+  getSinglePost,
 } = require("../controllers/postController");
 
 const authMiddleware = require("../middleware/authMiddleware");
@@ -16,6 +17,9 @@ router.post("/create", authMiddleware, createPost);
 
 // GET ALL POSTS
 router.get("/", getPosts);
+
+// GET SINGLE POST
+router.get("/:postId", getSinglePost);
 
 // EDIT POST
 router.put("/edit/:postId", authMiddleware, editPost);

@@ -6,15 +6,24 @@ import { useEffect, useRef, useState } from "react";
 
 import { Bell } from "lucide-react";
 
+import { io } from "socket.io-client";
+
+import API from "@/lib/api";
+
 import NotificationDropdown from "@/components/notifications/NotificationDropdown";
+
+const socket = io("http://localhost:5000");
 
 export default function Navbar() {
   const [user, setUser] = useState(null);
 
   const [showNotifications, setShowNotifications] = useState(false);
 
+  const [notificationCount, setNotificationCount] = useState(0);
+
   const dropdownRef = useRef(null);
 
+  // GET USER
   useEffect(() => {
     const token = localStorage.getItem("token");
 
@@ -23,12 +32,27 @@ export default function Navbar() {
         const payload = JSON.parse(atob(token.split(".")[1]));
 
         setUser(payload);
+
+        // JOIN SOCKET ROOM
+        socket.emit("join-user-room", payload.userId);
       } catch (error) {
         console.log(error);
       }
     }
   }, []);
 
+  // REALTIME BADGE
+  useEffect(() => {
+    socket.on("new-notification", () => {
+      setNotificationCount((prev) => prev + 1);
+    });
+
+    return () => {
+      socket.off("new-notification");
+    };
+  }, []);
+
+  // CLOSE DROPDOWN OUTSIDE CLICK
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -110,13 +134,41 @@ export default function Navbar() {
               {/* NOTIFICATIONS */}
               <div className="relative" ref={dropdownRef}>
                 <button
-                  onClick={() => setShowNotifications(!showNotifications)}
+                  onClick={async () => {
+                    const newState = !showNotifications;
+
+                    setShowNotifications(newState);
+
+                    // MARK AS READ
+                    if (newState) {
+                      try {
+                        await API.put("/notifications/read");
+
+                        setNotificationCount(0);
+                      } catch (error) {
+                        console.log(error);
+                      }
+                    }
+                  }}
                   className="relative p-2 rounded-full hover:bg-black/5 transition"
                 >
-                  <Bell size={22} />
+                  <div className="relative">
+                    <Bell size={22} />
+
+                    {notificationCount > 0 && (
+                      <span className="absolute -top-2 -right-2 min-w-[20px] h-5 px-1 bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center font-semibold">
+                        {notificationCount > 99 ? "99+" : notificationCount}
+                      </span>
+                    )}
+                  </div>
                 </button>
 
-                {showNotifications && <NotificationDropdown />}
+                {showNotifications && (
+                  <NotificationDropdown
+                    setNotificationCount={setNotificationCount}
+                    setShowNotifications={setShowNotifications}
+                  />
+                )}
               </div>
 
               {/* USERNAME */}

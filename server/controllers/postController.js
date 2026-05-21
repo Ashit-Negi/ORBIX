@@ -327,3 +327,54 @@ exports.deletePost = async (req, res) => {
     });
   }
 };
+
+// GET SINGLE POST
+exports.getSinglePost = async (req, res) => {
+  try {
+    const { postId } = req.params;
+
+    const post = await prisma.post.findUnique({
+      where: {
+        id: postId,
+      },
+
+      include: {
+        author: {
+          select: {
+            id: true,
+            username: true,
+            image: true,
+          },
+        },
+
+        community: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+          },
+        },
+
+        votes: true,
+
+        comments: true,
+      },
+    });
+
+    if (!post) {
+      return res.status(404).json({
+        message: "Post not found",
+      });
+    }
+
+    res.json({
+      ...post,
+
+      commentCount: post.comments.length,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+};

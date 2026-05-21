@@ -9,6 +9,7 @@ const {
   acceptRequest,
   getConnectionStatus,
   getPendingRequests,
+  removeConnection,
 } = require("../controllers/connectionController");
 
 // SEND REQUEST
@@ -22,5 +23,8 @@ router.get("/status/:userId", authMiddleware, getConnectionStatus);
 
 // GET PENDING REQUESTS
 router.get("/pending", authMiddleware, getPendingRequests);
+
+// REMOVE CONNECTION
+router.delete("/remove/:userId", authMiddleware, removeConnection);
 
 module.exports = router;

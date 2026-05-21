@@ -12,6 +12,8 @@ const communiyRoutes = require("./routes/communityRoutes");
 const profileRoutes = require("./routes/profileRoutes");
 const connectionRoutes = require("./routes/connectionRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
+const messageRoutes = require("./routes/messageRoutes");
+
 dotenv.config();
 
 const app = express();
@@ -39,6 +41,7 @@ app.use("/api/communities", communiyRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/connections", connectionRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/messages", messageRoutes);
 app.get("/", (req, res) => {
   res.send("Orbix API running...");
 });

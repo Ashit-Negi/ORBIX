@@ -1,5 +1,5 @@
 const prisma = require("../config/db");
-
+const sendNotification = require("../utils/sendNotification");
 // VOTE POST
 exports.votePost = async (req, res) => {
   try {
@@ -41,12 +41,41 @@ exports.votePost = async (req, res) => {
       action = "unliked";
     } else {
       // CREATE LIKE
+      // CREATE LIKE
       await prisma.vote.create({
         data: {
           userId,
           postId,
           value: 1,
         },
+      });
+
+      // GET POST
+      const post = await prisma.post.findUnique({
+        where: {
+          id: postId,
+        },
+
+        select: {
+          authorId: true,
+        },
+      });
+
+      // LIKE NOTIFICATION
+      const io = req.app.get("io");
+
+      await sendNotification({
+        io,
+
+        type: "POST_LIKE",
+
+        senderId: userId,
+
+        receiverId: post.authorId,
+
+        postId,
+
+        message: `${req.user.username} liked your post`,
       });
     }
 

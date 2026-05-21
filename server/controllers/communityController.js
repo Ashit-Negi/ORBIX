@@ -1,5 +1,5 @@
 const prisma = require("../config/db");
-
+const sendNotification = require("../utils/sendNotification");
 // CREATE COMMUNITY
 exports.createCommunity = async (req, res) => {
   try {
@@ -73,9 +73,21 @@ exports.createCommunity = async (req, res) => {
         },
       },
     });
-
-    // SOCKET IO
+    // CREATE COMMUNITY NOTIFICATION
     const io = req.app.get("io");
+
+    await sendNotification({
+      io,
+
+      type: "COMMUNITY_CREATED",
+
+      receiverId: req.user.userId,
+
+      communityId: community.id,
+
+      message: `You created ${community.name} community`,
+    });
+    // SOCKET IO
 
     io.emit("new-community", community);
 
@@ -357,9 +369,20 @@ exports.joinCommunity = async (req, res) => {
         communityId,
       },
     });
-
-    // SOCKET IO
+    // JOIN COMMUNITY NOTIFICATION
     const io = req.app.get("io");
+
+    await sendNotification({
+      io,
+
+      type: "COMMUNITY_JOINED",
+
+      receiverId: req.user.userId,
+
+      communityId,
+
+      message: `You joined a community`,
+    });
 
     io.emit("community-joined", {
       communityId,

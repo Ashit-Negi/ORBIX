@@ -6,6 +6,8 @@ import { useParams } from "next/navigation";
 
 import API from "@/lib/api";
 
+import socket from "@/lib/socket";
+
 import ProfileSidebar from "@/components/profile/ProfileSidebar";
 import ProfileAbout from "@/components/profile/ProfileAbout";
 import ProfileTabs from "@/components/profile/ProfileTabs";
@@ -44,6 +46,51 @@ export default function ProfilePage() {
     }
   }, []);
 
+  // REALTIME CONNECTION COUNT
+  useEffect(() => {
+    socket.on("connection-updated", (data) => {
+      setProfile((prev) => {
+        if (!prev) return prev;
+
+        // ONLY UPDATE SAME PROFILE
+        if (data.userId !== prev.id) {
+          return prev;
+        }
+
+        // CONNECTION ACCEPTED
+        if (data.status === "ACCEPTED") {
+          return {
+            ...prev,
+
+            counts: {
+              ...prev.counts,
+
+              connections: prev.counts.connections + 1,
+            },
+          };
+        }
+
+        // CONNECTION REMOVED
+        if (data.status === "NONE") {
+          return {
+            ...prev,
+
+            counts: {
+              ...prev.counts,
+
+              connections: Math.max(0, prev.counts.connections - 1),
+            },
+          };
+        }
+
+        return prev;
+      });
+    });
+
+    return () => {
+      socket.off("connection-updated");
+    };
+  }, []);
   const fetchProfile = async () => {
     try {
       const res = await API.get(`/profile/${username}`);

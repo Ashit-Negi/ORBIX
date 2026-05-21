@@ -1,5 +1,5 @@
 const prisma = require("../config/db");
-const { connect } = require("../routes/authRoutes");
+const sendNotification = require("../utils/sendNotification");
 
 // SEND CONNECTION REQUEST
 exports.sendRequest = async (req, res) => {
@@ -56,15 +56,22 @@ exports.sendRequest = async (req, res) => {
         receiverId,
       },
     });
+
     // CREATE NOTIFICATION
-    await prisma.notification.create({
-      data: {
-        type: "CONNECTION_REQUEST",
+    const io = req.app.get("io");
 
-        message: `${req.user.username} sent you a connection request`,
+    await sendNotification({
+      io,
 
-        receiverId: receiverId,
-      },
+      type: "CONNECTION_REQUEST",
+
+      senderId,
+
+      receiverId,
+
+      connectionId: connection.id,
+
+      message: `${req.user.username} sent you a connection request`,
     });
 
     res.status(201).json({
@@ -82,12 +89,21 @@ exports.sendRequest = async (req, res) => {
 exports.acceptRequest = async (req, res) => {
   try {
     const requestId = req.params.requestId;
+
     const currentUserId = req.user.userId;
 
     // FIND REQUEST
     const request = await prisma.connection.findUnique({
       where: {
         id: requestId,
+      },
+
+      include: {
+        sender: {
+          select: {
+            username: true,
+          },
+        },
       },
     });
 
@@ -105,29 +121,74 @@ exports.acceptRequest = async (req, res) => {
     }
 
     // UPDATE STATUS
+    // UPDATE STATUS
     const updatedRequest = await prisma.connection.update({
       where: {
         id: requestId,
       },
+
       data: {
         status: "ACCEPTED",
       },
     });
 
-    // CREATE ACCEPT NOTIFICATION
-    await prisma.notification.create({
-      data: {
-        type: "CONNECTION_ACCEPTED",
+    // SOCKET EVENT
+    const io = req.app.get("io");
 
-        message: `${req.user.username} accepted your connection request`,
+    io.to(request.senderId).emit("connection-updated", {
+      profileId: request.senderId,
 
-        receiverId: request.senderId,
-        connectionId: connection.id,
+      action: "INCREMENT",
+    });
+
+    io.to(currentUserId).emit("connection-updated", {
+      profileId: currentUserId,
+
+      action: "INCREMENT",
+    });
+
+    // DELETE OLD REQUEST NOTIFICATION
+    await prisma.notification.deleteMany({
+      where: {
+        connectionId: updatedRequest.id,
+
+        type: "CONNECTION_REQUEST",
       },
+    });
+
+    // SENDER NOTIFICATION
+    await sendNotification({
+      io,
+
+      type: "CONNECTION_ACCEPTED",
+
+      senderId: currentUserId,
+
+      receiverId: request.senderId,
+
+      connectionId: updatedRequest.id,
+
+      message: `${req.user.username} accepted your connection request`,
+    });
+
+    // RECEIVER NOTIFICATION
+    await sendNotification({
+      io,
+
+      type: "CONNECTION_ACCEPTED",
+
+      senderId: request.senderId,
+
+      receiverId: currentUserId,
+
+      connectionId: updatedRequest.id,
+
+      message: `You are now connected with ${request.sender.username}`,
     });
 
     res.json({
       message: "Connection accepted",
+
       connection: updatedRequest,
     });
   } catch (error) {
@@ -141,6 +202,7 @@ exports.acceptRequest = async (req, res) => {
 exports.getConnectionStatus = async (req, res) => {
   try {
     const currentUserId = req.user.userId;
+
     const otherUserId = req.params.userId;
 
     const connection = await prisma.connection.findFirst({
@@ -183,6 +245,7 @@ exports.getPendingRequests = async (req, res) => {
     const requests = await prisma.connection.findMany({
       where: {
         receiverId: currentUserId,
+
         status: "PENDING",
       },
 
@@ -203,6 +266,97 @@ exports.getPendingRequests = async (req, res) => {
     });
 
     res.json(requests);
+  } catch (error) {
+    res.status(500).json({
+      error: error.message,
+    });
+  }
+};
+// REMOVE CONNECTION
+exports.removeConnection = async (req, res) => {
+  try {
+    const currentUserId = req.user.userId;
+
+    const otherUserId = req.params.userId;
+
+    // FIND CONNECTION
+    const connection = await prisma.connection.findFirst({
+      where: {
+        status: "ACCEPTED",
+
+        OR: [
+          {
+            senderId: currentUserId,
+
+            receiverId: otherUserId,
+          },
+
+          {
+            senderId: otherUserId,
+
+            receiverId: currentUserId,
+          },
+        ],
+      },
+    });
+
+    if (!connection) {
+      return res.status(404).json({
+        message: "Connection not found",
+      });
+    }
+
+    // CURRENT USER
+    const currentUser = await prisma.user.findUnique({
+      where: {
+        id: currentUserId,
+      },
+
+      select: {
+        username: true,
+      },
+    });
+
+    // DELETE CONNECTION
+    await prisma.connection.delete({
+      where: {
+        id: connection.id,
+      },
+    });
+
+    // SOCKET
+    const io = req.app.get("io");
+
+    // REALTIME CONNECTION UPDATE
+    io.to(otherUserId).emit("connection-updated", {
+      profileId: otherUserId,
+
+      action: "DECREMENT",
+    });
+
+    io.to(currentUserId).emit("connection-updated", {
+      profileId: currentUserId,
+
+      action: "DECREMENT",
+    });
+    // REALTIME NOTIFICATION
+    await sendNotification({
+      io,
+
+      type: "CONNECTION_REMOVED",
+
+      senderId: currentUserId,
+
+      receiverId: otherUserId,
+
+      connectionId: connection.id,
+
+      message: `${currentUser.username} removed the connection`,
+    });
+
+    res.json({
+      message: "Connection removed",
+    });
   } catch (error) {
     res.status(500).json({
       error: error.message,

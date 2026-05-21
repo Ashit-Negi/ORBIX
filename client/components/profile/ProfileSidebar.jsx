@@ -1,9 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
+
 import { Pencil, CalendarDays } from "lucide-react";
 
 import API from "@/lib/api";
+
+import { io } from "socket.io-client";
+
+const socket = io("http://localhost:5000");
 
 export default function ProfileSidebar({ profile, setIsEditOpen, isOwner }) {
   const [connectionStatus, setConnectionStatus] = useState("NONE");
@@ -14,6 +19,25 @@ export default function ProfileSidebar({ profile, setIsEditOpen, isOwner }) {
     if (isOwner) return;
 
     fetchConnectionStatus();
+
+    const token = localStorage.getItem("token");
+
+    if (token) {
+      const payload = JSON.parse(atob(token.split(".")[1]));
+
+      socket.emit("join-user-room", payload.userId);
+    }
+
+    socket.on("connection-updated", (data) => {
+      // SAME PROFILE
+      if (data.userId === profile.id) {
+        setConnectionStatus(data.status);
+      }
+    });
+
+    return () => {
+      socket.off("connection-updated");
+    };
   }, [profile]);
 
   const fetchConnectionStatus = async () => {
@@ -26,6 +50,7 @@ export default function ProfileSidebar({ profile, setIsEditOpen, isOwner }) {
     }
   };
 
+  // SEND REQUEST
   const sendConnectionRequest = async () => {
     try {
       setLoading(true);
@@ -33,6 +58,27 @@ export default function ProfileSidebar({ profile, setIsEditOpen, isOwner }) {
       await API.post(`/connections/send/${profile.id}`);
 
       setConnectionStatus("PENDING");
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // REMOVE CONNECTION
+  const removeConnection = async () => {
+    const confirmDisconnect = window.confirm(
+      "Are you sure you want to disconnect?",
+    );
+
+    if (!confirmDisconnect) return;
+
+    try {
+      setLoading(true);
+
+      await API.delete(`/connections/remove/${profile.id}`);
+
+      setConnectionStatus("NONE");
     } catch (error) {
       console.log(error);
     } finally {
@@ -86,23 +132,29 @@ export default function ProfileSidebar({ profile, setIsEditOpen, isOwner }) {
 
         {/* CONNECT BUTTON */}
         {!isOwner && (
-          <button
-            onClick={sendConnectionRequest}
-            disabled={
-              loading ||
-              connectionStatus === "PENDING" ||
-              connectionStatus === "ACCEPTED"
-            }
-            className="mt-7 bg-[#22c55e] hover:bg-[#16a34a] disabled:opacity-60 transition-all duration-300 px-6 py-3 rounded-2xl font-semibold"
-          >
-            {loading
-              ? "Loading..."
-              : connectionStatus === "PENDING"
-                ? "Requested"
-                : connectionStatus === "ACCEPTED"
-                  ? "Connected"
-                  : "Connect"}
-          </button>
+          <>
+            {connectionStatus === "ACCEPTED" ? (
+              <button
+                onClick={removeConnection}
+                disabled={loading}
+                className="mt-7 bg-red-500 hover:bg-red-600 transition-all duration-300 px-6 py-3 rounded-2xl font-semibold"
+              >
+                {loading ? "Loading..." : "Disconnect"}
+              </button>
+            ) : (
+              <button
+                onClick={sendConnectionRequest}
+                disabled={loading || connectionStatus === "PENDING"}
+                className="mt-7 bg-[#22c55e] hover:bg-[#16a34a] disabled:opacity-60 transition-all duration-300 px-6 py-3 rounded-2xl font-semibold"
+              >
+                {loading
+                  ? "Loading..."
+                  : connectionStatus === "PENDING"
+                    ? "Requested"
+                    : "Connect"}
+              </button>
+            )}
+          </>
         )}
       </div>
 
@@ -133,9 +185,11 @@ export default function ProfileSidebar({ profile, setIsEditOpen, isOwner }) {
         </div>
 
         <div className="p-6">
-          <h2 className="text-4xl font-bold text-[#fb7185]">0</h2>
+          <h2 className="text-4xl font-bold text-[#fb7185]">
+            {profile.counts.connections}
+          </h2>
 
-          <p className="text-[#9ca3af] mt-2">Upvotes</p>
+          <p className="text-[#9ca3af] mt-2">Connections</p>
         </div>
       </div>
 

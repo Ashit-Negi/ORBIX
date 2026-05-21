@@ -66,6 +66,18 @@ exports.getUserProfile = async (req, res) => {
             comments: true,
             memberships: true,
             createdCommunities: true,
+
+            sentRequests: {
+              where: {
+                status: "ACCEPTED",
+              },
+            },
+
+            receivedRequests: {
+              where: {
+                status: "ACCEPTED",
+              },
+            },
           },
         },
       },
@@ -116,7 +128,11 @@ exports.getUserProfile = async (req, res) => {
 
         memberships: user.memberships,
 
-        counts: user._count,
+        counts: {
+          ...user._count,
+
+          connections: user._count.sentRequests + user._count.receivedRequests,
+        },
       },
     });
   } catch (error) {
@@ -163,6 +179,9 @@ exports.updateProfile = async (req, res) => {
     console.log("FULL ERROR:", JSON.stringify(error, null, 2));
     console.log("ERROR MESSAGE:", error.message);
     console.log("ERROR STACK:", error.stack);
-    res.status(500).json({ message: error.message });
+
+    res.status(500).json({
+      message: error.message,
+    });
   }
 };
