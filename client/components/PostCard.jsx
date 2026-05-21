@@ -7,11 +7,14 @@ import API from "../lib/api";
 import CommentSection from "./comments/CommentSection";
 
 import socket from "../lib/socket";
+
 import Link from "next/link";
 
 export default function PostCard({
   id,
   author,
+  authorName,
+  authorImage,
   authorId,
   title,
   content,
@@ -129,6 +132,7 @@ export default function PostCard({
         console.log(error);
       }
     };
+
     const handleNewComment = (data) => {
       if (data.postId === id) {
         syncCommentCount();
@@ -309,18 +313,23 @@ export default function PostCard({
   };
 
   return (
-    <div className="bg-white border border-[#e5e7eb] rounded-3xl p-4 sm:p-6">
+    <div className="bg-white border border-[#e5e7eb] rounded-3xl p-5 sm:p-6 shadow-sm">
       {/* HEADER */}
       <div className="flex items-start justify-between mb-5">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#ececeb]"></div>
+          {/* PROFILE IMAGE */}
+          <img
+            src={authorImage || "/default-avatar.png"}
+            alt="profile"
+            className="w-10 h-10 sm:w-11 sm:h-11 rounded-full object-cover"
+          />
 
           <div>
             <Link
               href={`/profile/${author}`}
               className="font-medium text-[#111111] text-sm sm:text-base hover:underline"
             >
-              {author}
+              {authorName || author}
             </Link>
 
             <div className="flex items-center gap-2 text-xs text-[#6b7280]">
@@ -328,7 +337,7 @@ export default function PostCard({
                 <p>
                   Posted in{" "}
                   <span className="text-[#111111] font-medium">
-                    r/{community.slug}
+                    {community.name}
                   </span>
                 </p>
               )}

@@ -15,16 +15,18 @@ export default function Home() {
 
   const [communities, setCommunities] = useState([]);
 
+  const [suggestedUsers, setSuggestedUsers] = useState([]);
+
   const [title, setTitle] = useState("");
 
   const [content, setContent] = useState("");
-
-  const [selectedCommunity, setSelectedCommunity] = useState("");
 
   useEffect(() => {
     fetchPosts();
 
     fetchCommunities();
+
+    fetchSuggestedUsers();
   }, []);
 
   // REALTIME SOCKETS
@@ -66,48 +68,6 @@ export default function Home() {
       });
     };
 
-    // JOIN COMMUNITY
-    const handleCommunityJoined = ({ communityId }) => {
-      setCommunities((prev) =>
-        prev.map((community) => {
-          if (community.id === communityId) {
-            return {
-              ...community,
-
-              _count: {
-                ...community._count,
-
-                memberships: community._count.memberships + 1,
-              },
-            };
-          }
-
-          return community;
-        }),
-      );
-    };
-
-    // LEAVE COMMUNITY
-    const handleCommunityLeft = ({ communityId }) => {
-      setCommunities((prev) =>
-        prev.map((community) => {
-          if (community.id === communityId) {
-            return {
-              ...community,
-
-              _count: {
-                ...community._count,
-
-                memberships: Math.max(0, community._count.memberships - 1),
-              },
-            };
-          }
-
-          return community;
-        }),
-      );
-    };
-
     socket.on("new-post", handleNewPost);
 
     socket.on("post-updated", handleUpdatedPost);
@@ -115,10 +75,6 @@ export default function Home() {
     socket.on("post-deleted", handleDeletePost);
 
     socket.on("new-community", handleNewCommunity);
-
-    socket.on("community-joined", handleCommunityJoined);
-
-    socket.on("community-left", handleCommunityLeft);
 
     return () => {
       socket.off("new-post", handleNewPost);
@@ -128,10 +84,6 @@ export default function Home() {
       socket.off("post-deleted", handleDeletePost);
 
       socket.off("new-community", handleNewCommunity);
-
-      socket.off("community-joined", handleCommunityJoined);
-
-      socket.off("community-left", handleCommunityLeft);
     };
   }, []);
 
@@ -157,6 +109,17 @@ export default function Home() {
     }
   };
 
+  // FETCH SUGGESTED USERS
+  const fetchSuggestedUsers = async () => {
+    try {
+      const res = await API.get("/users/suggested");
+
+      setSuggestedUsers(res.data);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   // CREATE POST
   const handleCreatePost = async () => {
     try {
@@ -174,8 +137,7 @@ export default function Home() {
           title,
           content,
 
-          // OPTIONAL COMMUNITY
-          communityId: selectedCommunity || null,
+          communityId: null,
         },
         {
           headers: {
@@ -188,8 +150,6 @@ export default function Home() {
       setTitle("");
 
       setContent("");
-
-      setSelectedCommunity("");
     } catch (error) {
       console.log(error);
 
@@ -205,7 +165,7 @@ export default function Home() {
           <div className="bg-white border border-[#e5e7eb] rounded-3xl p-5 sticky top-24">
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-sm font-semibold text-[#111111]">
-                Communities
+                Your Communities
               </h2>
 
               <Link
@@ -216,17 +176,16 @@ export default function Home() {
               </Link>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-3">
               {communities.slice(0, 6).map((community) => (
                 <Link
                   key={community.id}
                   href={`/communities/${community.slug}`}
                   className="block"
                 >
-                  <div className="hover:bg-[#f7f7f7] rounded-2xl p-3 transition">
+                  <div className="hover:bg-[#f7f7f7] rounded-2xl p-3 transition border border-transparent hover:border-[#ececec]">
                     <p className="font-medium text-sm text-[#111111]">
-                      r/
-                      {community.slug}
+                      {community.name}
                     </p>
 
                     <p className="text-xs text-[#6b7280] mt-1">
@@ -239,8 +198,65 @@ export default function Home() {
           </div>
         </aside>
 
-        {/* MAIN FEED */}
-        <section className="col-span-6 space-y-5">
+        {/* MAIN CONTENT */}
+        <section className="col-span-9 space-y-5">
+          {/* TOP GRID */}
+          <div className="grid grid-cols-12 gap-5">
+            {/* FEED HEADER */}
+            <div className="col-span-7 bg-white border border-[#e5e7eb] rounded-3xl p-6">
+              <p className="text-sm text-[#71717a] mb-2">Welcome back 👋</p>
+
+              <h1 className="text-2xl font-semibold text-[#111111] leading-snug">
+                Discover conversations from your network.
+              </h1>
+            </div>
+
+            {/* PEOPLE YOU MAY KNOW */}
+            <div className="col-span-5 bg-white border border-[#e5e7eb] rounded-3xl p-5">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-sm font-semibold text-[#111111]">
+                  People You May Know
+                </h2>
+
+                <button className="text-xs text-[#71717a]">View all</button>
+              </div>
+
+              <div className="space-y-4">
+                {suggestedUsers.map((user) => (
+                  <div
+                    key={user.id}
+                    className="flex items-center justify-between"
+                  >
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={user.image || "/default-avatar.png"}
+                        alt="profile"
+                        className="w-11 h-11 rounded-full object-cover"
+                      />
+
+                      <div>
+                        <p className="text-sm font-medium text-[#111111]">
+                          {user.name}
+                        </p>
+
+                        <p className="text-xs text-[#71717a] line-clamp-1">
+                          {user.bio || "Orbix User"}
+                        </p>
+                      </div>
+                    </div>
+
+                    <Link
+                      href={`/profile/${user.username}`}
+                      className="border border-[#e5e7eb] px-3 py-1.5 rounded-full text-xs hover:bg-[#f7f7f7] transition"
+                    >
+                      View
+                    </Link>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
           {/* CREATE POST */}
           <div className="bg-white border border-[#e5e7eb] rounded-3xl p-5">
             {/* TITLE */}
@@ -260,22 +276,6 @@ export default function Home() {
               className="w-full bg-[#f7f7f7] border border-[#e5e7eb] rounded-2xl px-4 py-3 outline-none resize-none h-32"
             />
 
-            {/* COMMUNITY SELECT */}
-            <select
-              value={selectedCommunity}
-              onChange={(e) => setSelectedCommunity(e.target.value)}
-              className="w-full bg-[#f7f7f7] border border-[#e5e7eb] rounded-2xl px-4 py-3 outline-none text-sm mt-3"
-            >
-              <option value="">Post globally</option>
-
-              {communities.map((community) => (
-                <option key={community.id} value={community.id}>
-                  r/
-                  {community.slug}
-                </option>
-              ))}
-            </select>
-
             {/* ACTION */}
             <div className="flex justify-end mt-4">
               <button
@@ -293,6 +293,7 @@ export default function Home() {
               key={post.id}
               id={post.id}
               author={post.author.username}
+              authorImage={post.author.image}
               authorId={post.author.id}
               title={post.title}
               content={post.content}
@@ -307,36 +308,6 @@ export default function Home() {
             />
           ))}
         </section>
-
-        {/* RIGHT SIDEBAR */}
-        <aside className="col-span-3">
-          <div className="bg-white border border-[#e5e7eb] rounded-3xl p-5 sticky top-24">
-            <h2 className="text-sm font-semibold text-[#111111] mb-5">
-              Trending Communities
-            </h2>
-
-            <div className="space-y-4">
-              {communities.slice(0, 5).map((community) => (
-                <Link
-                  key={community.id}
-                  href={`/communities/${community.slug}`}
-                  className="block"
-                >
-                  <div>
-                    <p className="font-medium text-sm text-[#111111]">
-                      r/
-                      {community.slug}
-                    </p>
-
-                    <p className="text-xs text-[#6b7280]">
-                      👥 {community._count.memberships} members
-                    </p>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </aside>
       </div>
     </main>
   );

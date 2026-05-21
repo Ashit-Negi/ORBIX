@@ -59,3 +59,35 @@ exports.searchUsers = async (req, res) => {
     });
   }
 };
+
+exports.getSuggestedUsers = async (req, res) => {
+  try {
+    const currentUserId = req.user.userId;
+
+    const users = await prisma.user.findMany({
+      where: {
+        NOT: {
+          id: currentUserId,
+        },
+      },
+
+      select: {
+        id: true,
+        name: true,
+        username: true,
+        bio: true,
+        image: true,
+      },
+
+      take: 5,
+    });
+
+    res.json(users);
+  } catch (error) {
+    console.log(error);
+
+    res.status(500).json({
+      message: "Failed to fetch users",
+    });
+  }
+};
