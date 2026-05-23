@@ -21,6 +21,14 @@ export default function Home() {
 
   const [content, setContent] = useState("");
 
+  const [mediaFile, setMediaFile] = useState(null);
+
+  const [mediaPreview, setMediaPreview] = useState("");
+
+  const [mediaType, setMediaType] = useState("");
+
+  const [uploading, setUploading] = useState(false);
+
   // FETCH POSTS
   const fetchPosts = async () => {
     try {
@@ -120,6 +128,58 @@ export default function Home() {
     };
   }, []);
 
+  // HANDLE FILE CHANGE
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+
+    if (!file) return;
+
+    const isVideo = file.type.startsWith("video");
+
+    // VIDEO SIZE VALIDATION
+    if (isVideo && file.size > 30 * 1024 * 1024) {
+      alert("Video size should be under 30MB");
+
+      return;
+    }
+
+    // IMAGE SIZE VALIDATION
+    if (!isVideo && file.size > 5 * 1024 * 1024) {
+      alert("Image size should be under 5MB");
+
+      return;
+    }
+
+    // VIDEO DURATION VALIDATION
+    if (isVideo) {
+      const video = document.createElement("video");
+
+      video.preload = "metadata";
+
+      video.onloadedmetadata = () => {
+        window.URL.revokeObjectURL(video.src);
+
+        if (video.duration > 60) {
+          alert("Video must be under 60 seconds");
+
+          setMediaFile(null);
+
+          setMediaPreview("");
+
+          return;
+        }
+      };
+
+      video.src = URL.createObjectURL(file);
+    }
+
+    setMediaFile(file);
+
+    setMediaType(isVideo ? "video" : "image");
+
+    setMediaPreview(URL.createObjectURL(file));
+  };
+
   // CREATE POST
   const handleCreatePost = async () => {
     try {
@@ -131,29 +191,45 @@ export default function Home() {
         return;
       }
 
-      await API.post(
-        "/posts/create",
-        {
-          title,
-          content,
+      setUploading(true);
 
-          communityId: null,
+      const formData = new FormData();
+
+      formData.append("title", title);
+
+      formData.append("content", content);
+
+      formData.append("communityId", "");
+
+      // MEDIA FILE
+      if (mediaFile) {
+        formData.append("media", mediaFile);
+      }
+
+      await API.post("/posts/create", formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+
+          "Content-Type": "multipart/form-data",
         },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
+      });
 
       // CLEAR INPUTS
       setTitle("");
 
       setContent("");
+
+      setMediaFile(null);
+
+      setMediaPreview("");
+
+      setMediaType("");
     } catch (error) {
       console.log(error);
 
       alert("Failed to create post");
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -200,110 +276,6 @@ export default function Home() {
 
         {/* MAIN CONTENT */}
         <section className="lg:col-span-9 space-y-4 sm:space-y-5 min-w-0">
-          {/* TOP GRID */}
-          <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 sm:gap-5">
-            {/* FEED HEADER */}
-            <div className="xl:col-span-7 bg-white border border-[#e5e7eb] rounded-2xl sm:rounded-3xl p-5 sm:p-6">
-              <p className="text-sm text-[#71717a] mb-2">Welcome back 👋</p>
-
-              <h1 className="text-xl sm:text-2xl font-semibold text-[#111111] leading-snug">
-                Discover conversations from your network.
-              </h1>
-            </div>
-
-            {/* PEOPLE YOU MAY KNOW */}
-            <div className="xl:col-span-5 bg-white border border-[#e5e7eb] rounded-2xl sm:rounded-3xl p-4 sm:p-5">
-              <div className="flex items-center justify-between mb-4 gap-3">
-                <h2 className="text-sm font-semibold text-[#111111]">
-                  People You May Know
-                </h2>
-
-                <Link
-                  href="/people"
-                  className="text-xs text-[#71717a] whitespace-nowrap hover:text-black transition"
-                >
-                  View all
-                </Link>
-              </div>
-
-              <div className="space-y-4">
-                {suggestedUsers
-                  .filter((user) => user?.username && user?.name)
-                  .map((user) => (
-                    <div
-                      key={user.id}
-                      className="flex items-center justify-between gap-3"
-                    >
-                      <div className="flex items-center gap-3 min-w-0">
-                        {/* for image */}
-                        {user.image ? (
-                          <img
-                            src={user.image}
-                            alt="profile"
-                            className="w-10 h-10 sm:w-11 sm:h-11 rounded-full object-cover shrink-0"
-                          />
-                        ) : (
-                          <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-black text-white flex items-center justify-center text-sm font-semibold shrink-0">
-                            {user.username?.charAt(0).toUpperCase()}
-                          </div>
-                        )}
-                        <div className="min-w-0">
-                          <p className="text-sm font-medium text-[#111111] truncate">
-                            {user.name}
-                          </p>
-
-                          <p className="text-xs text-[#71717a] line-clamp-1">
-                            {user.bio || `@${user.username}`}
-                          </p>
-                        </div>
-                      </div>
-
-                      <Link
-                        href={`/profile/${user.username}`}
-                        className="border border-[#e5e7eb] px-3 py-1.5 rounded-full text-xs hover:bg-[#f7f7f7] transition whitespace-nowrap"
-                      >
-                        View
-                      </Link>
-                    </div>
-                  ))}
-              </div>
-            </div>
-          </div>
-
-          {/* MOBILE COMMUNITIES */}
-          <div className="lg:hidden bg-white border border-[#e5e7eb] rounded-2xl p-4">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-semibold text-[#111111]">
-                Your Communities
-              </h2>
-
-              <Link
-                href="/communities/create"
-                className="text-xs text-[#111111]"
-              >
-                + Create
-              </Link>
-            </div>
-
-            <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide">
-              {communities.slice(0, 6).map((community) => (
-                <Link
-                  key={community.id}
-                  href={`/communities/${community.slug}`}
-                  className="min-w-[180px] bg-[#f7f7f7] rounded-2xl p-3 border border-[#ececec]"
-                >
-                  <p className="font-medium text-sm text-[#111111] truncate">
-                    {community.name}
-                  </p>
-
-                  <p className="text-xs text-[#6b7280] mt-1">
-                    👥 {community._count.memberships}
-                  </p>
-                </Link>
-              ))}
-            </div>
-          </div>
-
           {/* CREATE POST */}
           <div className="bg-white border border-[#e5e7eb] rounded-2xl sm:rounded-3xl p-4 sm:p-5">
             {/* TITLE */}
@@ -323,13 +295,46 @@ export default function Home() {
               className="w-full text-sm sm:text-base bg-[#f7f7f7] border border-[#e5e7eb] rounded-2xl px-4 py-3 outline-none resize-none h-28 sm:h-32"
             />
 
+            {/* MEDIA PREVIEW */}
+            {mediaPreview && (
+              <div className="mt-4 overflow-hidden rounded-2xl border border-[#e5e7eb]">
+                {mediaType === "image" ? (
+                  <img
+                    src={mediaPreview}
+                    alt="preview"
+                    className="w-full max-h-[400px] object-cover"
+                  />
+                ) : (
+                  <video
+                    src={mediaPreview}
+                    controls
+                    className="w-full max-h-[400px] object-cover"
+                  />
+                )}
+              </div>
+            )}
+
+            {/* FILE INPUT */}
+            <div className="mt-4">
+              <label className="inline-flex items-center gap-2 cursor-pointer bg-[#f7f7f7] hover:bg-[#ececec] transition px-4 py-2 rounded-full text-sm text-[#111111]">
+                📎 Add Photo/Video
+                <input
+                  type="file"
+                  accept="image/*,video/*"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+              </label>
+            </div>
+
             {/* ACTION */}
             <div className="flex justify-stretch sm:justify-end mt-4">
               <button
                 onClick={handleCreatePost}
-                className="w-full sm:w-auto bg-[#111111] text-white px-5 py-2.5 rounded-full text-sm hover:opacity-90 transition"
+                disabled={uploading || !title.trim() || !content.trim()}
+                className="w-full sm:w-auto bg-[#111111] text-white px-5 py-2.5 rounded-full text-sm hover:opacity-90 transition disabled:opacity-50"
               >
-                Publish
+                {uploading ? "Publishing..." : "Publish"}
               </button>
             </div>
           </div>
@@ -345,6 +350,8 @@ export default function Home() {
                 authorId={post.author.id}
                 title={post.title}
                 content={post.content}
+                mediaUrl={post.mediaUrl}
+                mediaType={post.mediaType}
                 commentCount={post.commentCount}
                 votes={post.votes}
                 community={post.community}

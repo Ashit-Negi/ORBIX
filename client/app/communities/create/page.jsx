@@ -13,7 +13,7 @@ export default function CreateCommunityPage() {
 
   const [description, setDescription] = useState("");
 
-  const [image, setImage] = useState("");
+  const [image, setImage] = useState("/.default-community.png");
 
   const [loading, setLoading] = useState(false);
 

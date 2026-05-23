@@ -12,8 +12,10 @@ const {
 
 const authMiddleware = require("../middleware/authMiddleware");
 
+const upload = require("../middleware/postUploadMiddleware");
+
 // CREATE POST
-router.post("/create", authMiddleware, createPost);
+router.post("/create", authMiddleware, upload.single("media"), createPost);
 
 // GET ALL POSTS
 router.get("/", getPosts);
@@ -22,7 +24,7 @@ router.get("/", getPosts);
 router.get("/:postId", getSinglePost);
 
 // EDIT POST
-router.put("/edit/:postId", authMiddleware, editPost);
+router.put("/edit/:postId", authMiddleware, upload.single("media"), editPost);
 
 // DELETE POST
 router.delete("/delete/:postId", authMiddleware, deletePost);

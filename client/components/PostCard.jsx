@@ -18,6 +18,8 @@ export default function PostCard({
   authorId,
   title,
   content,
+  mediaUrl,
+  mediaType,
   commentCount,
   votes,
   community,
@@ -54,8 +56,13 @@ export default function PostCard({
   let loggedInUserId = null;
 
   if (token) {
-    const payload = JSON.parse(atob(token.split(".")[1]));
+    try {
+      const payload = JSON.parse(atob(token.split(".")[1]));
 
+      loggedInUserId = payload.userId;
+    } catch (error) {
+      console.log(error);
+    }
     loggedInUserId = payload.userId;
   }
 
@@ -386,7 +393,26 @@ export default function PostCard({
           {localContent}
         </p>
       )}
+      {/* MEDIA */}
+      {mediaUrl && mediaType === "image" && (
+        <div className="mt-5 overflow-hidden rounded-2xl border border-[#e5e7eb]">
+          <img
+            src={mediaUrl}
+            alt="post-media"
+            className="w-full max-h-[500px] object-cover"
+          />
+        </div>
+      )}
 
+      {mediaUrl && mediaType === "video" && (
+        <div className="mt-5 overflow-hidden rounded-2xl border border-[#e5e7eb]">
+          <video
+            src={mediaUrl}
+            controls
+            className="w-full max-h-[500px] object-cover"
+          />
+        </div>
+      )}
       {/* SAVE BUTTON */}
       {isEditing && (
         <div className="flex justify-end mt-4">

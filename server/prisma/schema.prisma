@@ -187,6 +187,8 @@ model Post {
   content     String
 
   imageUrl    String?
+  mediaUrl  String?
+  mediaType String?
 
   type        PostType?
 

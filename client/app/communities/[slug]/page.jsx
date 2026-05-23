@@ -29,6 +29,13 @@ export default function SingleCommunityPage() {
 
   const [content, setContent] = useState("");
 
+  // MEDIA STATES
+  const [mediaFile, setMediaFile] = useState(null);
+
+  const [mediaPreview, setMediaPreview] = useState("");
+
+  const [mediaType, setMediaType] = useState("");
+
   const [creatingPost, setCreatingPost] = useState(false);
 
   const [visibility, setVisibility] = useState("PUBLIC");
@@ -229,6 +236,35 @@ export default function SingleCommunityPage() {
     }
   };
 
+  // HANDLE FILE CHANGE
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+
+    if (!file) return;
+
+    const isVideo = file.type.startsWith("video");
+
+    // VIDEO SIZE
+    if (isVideo && file.size > 30 * 1024 * 1024) {
+      alert("Video size should be under 30MB");
+
+      return;
+    }
+
+    // IMAGE SIZE
+    if (!isVideo && file.size > 5 * 1024 * 1024) {
+      alert("Image size should be under 5MB");
+
+      return;
+    }
+
+    setMediaFile(file);
+
+    setMediaType(isVideo ? "video" : "image");
+
+    setMediaPreview(URL.createObjectURL(file));
+  };
+
   // CREATE POST
   const handleCreatePost = async () => {
     try {
@@ -248,28 +284,39 @@ export default function SingleCommunityPage() {
 
       setCreatingPost(true);
 
-      await API.post(
-        "/posts/create",
-        {
-          title,
-          content,
+      const formData = new FormData();
 
-          communityId: community.id,
+      formData.append("title", title);
 
-          visibility,
+      formData.append("content", content);
+
+      formData.append("communityId", community.id);
+
+      formData.append("visibility", visibility);
+
+      if (mediaFile) {
+        formData.append("media", mediaFile);
+      }
+
+      await API.post("/posts/create", formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+
+          "Content-Type": "multipart/form-data",
         },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
+      });
 
       setTitle("");
 
       setContent("");
 
       setVisibility("PUBLIC");
+
+      setMediaFile(null);
+
+      setMediaPreview("");
+
+      setMediaType("");
     } catch (error) {
       console.log(error);
 
@@ -363,6 +410,38 @@ export default function SingleCommunityPage() {
               className="w-full text-sm sm:text-base bg-[#f7f7f7] border border-[#e5e7eb] rounded-2xl px-4 py-3 outline-none resize-none h-28 sm:h-32"
             />
 
+            {/* MEDIA PREVIEW */}
+            {mediaPreview && (
+              <div className="mt-4 overflow-hidden rounded-2xl border border-[#e5e7eb]">
+                {mediaType === "image" ? (
+                  <img
+                    src={mediaPreview}
+                    alt="preview"
+                    className="w-full max-h-[400px] object-cover"
+                  />
+                ) : (
+                  <video
+                    src={mediaPreview}
+                    controls
+                    className="w-full max-h-[400px] object-cover"
+                  />
+                )}
+              </div>
+            )}
+
+            {/* FILE INPUT */}
+            <div className="mt-4">
+              <label className="inline-flex items-center gap-2 cursor-pointer bg-[#f7f7f7] hover:bg-[#ececec] transition px-4 py-2 rounded-full text-sm text-[#111111]">
+                📎 Add Photo/Video
+                <input
+                  type="file"
+                  accept="image/*,video/*"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+              </label>
+            </div>
+
             <select
               value={visibility}
               onChange={(e) => setVisibility(e.target.value)}
@@ -397,9 +476,12 @@ export default function SingleCommunityPage() {
                 key={post.id}
                 id={post.id}
                 author={post.author.username}
+                authorImage={post.author.image}
                 authorId={post.author.id}
                 title={post.title}
                 content={post.content}
+                mediaUrl={post.mediaUrl}
+                mediaType={post.mediaType}
                 commentCount={post.commentCount}
                 votes={post.votes}
                 community={post.community}

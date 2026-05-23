@@ -142,7 +142,7 @@ export default function CommunitiesPage() {
                 <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-[#f3f4f6] overflow-hidden mb-4 sm:mb-5">
                   {community.image ? (
                     <img
-                      src={community.image}
+                      src={community.image || "/default-community.png"}
                       alt={community.name}
                       className="w-full h-full object-cover"
                     />

@@ -6,6 +6,15 @@ exports.createPost = async (req, res) => {
     const { title, content, communityId, type, imageUrl, visibility } =
       req.body;
 
+    // MEDIA FROM CLOUDINARY MULTER
+    const mediaUrl = req.file?.path || null;
+
+    const mediaType = req.file
+      ? req.file.mimetype.startsWith("video")
+        ? "video"
+        : "image"
+      : null;
+
     if (!title || !content) {
       return res.status(400).json({
         message: "All fields are required",
@@ -44,7 +53,14 @@ exports.createPost = async (req, res) => {
       data: {
         title,
         content,
+
+        // OLD FIELD
         imageUrl,
+
+        // MEDIA
+        mediaUrl,
+        mediaType,
+
         type,
 
         // VISIBILITY
@@ -65,7 +81,6 @@ exports.createPost = async (req, res) => {
           },
         },
 
-        // COMMUNITY
         community: {
           select: {
             id: true,
@@ -125,7 +140,6 @@ exports.getPosts = async (req, res) => {
           },
         },
 
-        // COMMUNITY
         community: {
           select: {
             id: true,
@@ -168,6 +182,15 @@ exports.editPost = async (req, res) => {
 
     const { title, content, visibility } = req.body;
 
+    // NEW MEDIA
+    const mediaUrl = req.file?.path;
+
+    const mediaType = req.file
+      ? req.file.mimetype.startsWith("video")
+        ? "video"
+        : "image"
+      : undefined;
+
     const post = await prisma.post.findUnique({
       where: {
         id: postId,
@@ -207,6 +230,11 @@ exports.editPost = async (req, res) => {
         content: content || post.content,
 
         visibility: visibility || post.visibility,
+
+        // UPDATE MEDIA
+        mediaUrl: mediaUrl || post.mediaUrl,
+
+        mediaType: mediaType || post.mediaType,
       },
 
       include: {

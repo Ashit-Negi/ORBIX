@@ -27,8 +27,10 @@ export default function SinglePostPage() {
   };
 
   useEffect(() => {
-    fetchPost();
-  }, []);
+    if (postId) {
+      fetchPost();
+    }
+  }, [postId]);
 
   if (!post) {
     return <div className="p-4 sm:p-10 text-sm text-[#6b7280]">Loading...</div>;
@@ -39,9 +41,12 @@ export default function SinglePostPage() {
       <PostCard
         id={post.id}
         author={post.author.username}
+        authorImage={post.author.image}
         authorId={post.author.id}
         title={post.title}
         content={post.content}
+        mediaUrl={post.mediaUrl}
+        mediaType={post.mediaType}
         commentCount={post.commentCount}
         votes={post.votes}
         community={post.community}
