@@ -224,37 +224,51 @@ export default function Home() {
               </div>
 
               <div className="space-y-4">
-                {suggestedUsers.map((user) => (
-                  <div
-                    key={user.id}
-                    className="flex items-center justify-between gap-3"
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <img
-                        src={user.image || "/default-avatar.png"}
-                        alt="profile"
-                        className="w-10 h-10 sm:w-11 sm:h-11 rounded-full object-cover shrink-0"
-                      />
-
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium text-[#111111] truncate">
-                          {user.name}
-                        </p>
-
-                        <p className="text-xs text-[#71717a] line-clamp-1">
-                          {user.bio || "Orbix User"}
-                        </p>
-                      </div>
-                    </div>
-
-                    <Link
-                      href={`/profile/${user.username}`}
-                      className="border border-[#e5e7eb] px-3 py-1.5 rounded-full text-xs hover:bg-[#f7f7f7] transition whitespace-nowrap"
+                {suggestedUsers
+                  .filter((user) => user?.username && user?.name)
+                  .map((user) => (
+                    <div
+                      key={user.id}
+                      className="flex items-center justify-between gap-3"
                     >
-                      View
-                    </Link>
-                  </div>
-                ))}
+                      <div className="flex items-center gap-3 min-w-0">
+                        <img
+                          src={
+                            user.image ? (
+                              <img
+                                src={user.image}
+                                alt="profile"
+                                className="w-10 h-10 sm:w-11 sm:h-11 rounded-full object-cover shrink-0"
+                              />
+                            ) : (
+                              <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-black text-white flex items-center justify-center text-sm font-semibold shrink-0">
+                                {user.username?.charAt(0).toUpperCase()}
+                              </div>
+                            )
+                          }
+                          alt="profile"
+                          className="w-10 h-10 sm:w-11 sm:h-11 rounded-full object-cover shrink-0"
+                        />
+
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-[#111111] truncate">
+                            {user.name}
+                          </p>
+
+                          <p className="text-xs text-[#71717a] line-clamp-1">
+                            {user.bio || `@${user.username}`}
+                          </p>
+                        </div>
+                      </div>
+
+                      <Link
+                        href={`/profile/${user.username}`}
+                        className="border border-[#e5e7eb] px-3 py-1.5 rounded-full text-xs hover:bg-[#f7f7f7] transition whitespace-nowrap"
+                      >
+                        View
+                      </Link>
+                    </div>
+                  ))}
               </div>
             </div>
           </div>
