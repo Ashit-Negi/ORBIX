@@ -63,7 +63,6 @@ export default function PostCard({
     } catch (error) {
       console.log(error);
     }
-    loggedInUserId = payload.userId;
   }
 
   // OWNER CHECK
