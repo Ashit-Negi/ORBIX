@@ -98,27 +98,37 @@ export default function PostCard({
   }, [id]);
 
   // REALTIME COMMENT COUNT
+  // REALTIME COMMENT COUNT SYNC
   useEffect(() => {
-    const handleNewComment = (data) => {
-      if (data.postId === id) {
-        setLocalCommentCount((prev) => prev + 1);
+    const syncCommentCount = async (data) => {
+      if (data.postId !== id) return;
+
+      try {
+        const res = await API.get(`/comments/${id}`);
+
+        const totalComments = res.data.reduce(
+          (acc, comment) => acc + 1 + (comment.replies?.length || 0),
+          0,
+        );
+
+        setLocalCommentCount(totalComments);
+      } catch (error) {
+        console.log(error);
       }
     };
 
-    const handleDeleteComment = (data) => {
-      if (data.postId === id) {
-        setLocalCommentCount((prev) => Math.max(0, prev - 1));
-      }
-    };
+    socket.on("new-comment", syncCommentCount);
 
-    socket.on("new-comment", handleNewComment);
+    socket.on("comment-deleted", syncCommentCount);
 
-    socket.on("comment-deleted", handleDeleteComment);
+    socket.on("comment-updated", syncCommentCount);
 
     return () => {
-      socket.off("new-comment", handleNewComment);
+      socket.off("new-comment", syncCommentCount);
 
-      socket.off("comment-deleted", handleDeleteComment);
+      socket.off("comment-deleted", syncCommentCount);
+
+      socket.off("comment-updated", syncCommentCount);
     };
   }, [id]);
 
