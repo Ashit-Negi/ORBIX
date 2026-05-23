@@ -4,12 +4,12 @@ export default function ProfileTabs({ activeTab, setActiveTab }) {
   const tabs = ["Posts", "Experience", "Communities"];
 
   return (
-    <div className="dark-card rounded-[28px] p-2 flex items-center gap-2 overflow-x-auto">
+    <div className="dark-card rounded-[24px] sm:rounded-[28px] p-2 flex items-center gap-2 overflow-x-auto scrollbar-hide">
       {tabs.map((tab) => (
         <button
           key={tab}
           onClick={() => setActiveTab(tab)}
-          className={`px-6 py-3 rounded-2xl text-sm font-medium whitespace-nowrap transition-all duration-300 ${
+          className={`flex-shrink-0 px-4 sm:px-6 py-2.5 sm:py-3 rounded-2xl text-xs sm:text-sm font-medium whitespace-nowrap transition-all duration-300 ${
             activeTab === tab
               ? "bg-[#22c55e] text-black"
               : "text-[#9ca3af] hover:bg-white/5"

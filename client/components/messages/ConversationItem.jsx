@@ -29,16 +29,16 @@ export default function ConversationItem({
   return (
     <button
       onClick={() => setSelectedConversation(conversation)}
-      className={`w-full flex items-center gap-3 p-4 text-left border-b border-gray-100 transition hover:bg-gray-50 ${
+      className={`w-full flex items-center gap-3 p-3 sm:p-4 text-left border-b border-gray-100 transition hover:bg-gray-50 ${
         isSelected ? "bg-gray-100" : ""
       }`}
     >
       {/* PROFILE IMAGE */}
-      <div className="relative">
+      <div className="relative shrink-0">
         <img
           src={otherUser?.image || "https://placehold.co/100x100"}
           alt="profile"
-          className="w-12 h-12 rounded-full object-cover"
+          className="w-11 h-11 sm:w-12 sm:h-12 rounded-full object-cover"
         />
 
         {/* ONLINE DOT */}
@@ -48,14 +48,14 @@ export default function ConversationItem({
       </div>
 
       {/* USER INFO */}
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 min-w-0 overflow-hidden">
         <div className="flex items-center justify-between gap-2">
           <h3 className="font-medium text-sm truncate">
             {otherUser?.name || otherUser?.username}
           </h3>
         </div>
 
-        <p className="text-sm text-gray-500 truncate">
+        <p className="text-xs sm:text-sm text-gray-500 truncate">
           {lastMessage?.text || "Start chatting"}
         </p>
       </div>

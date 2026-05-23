@@ -44,7 +44,7 @@ export default function UserSearch() {
   }, [query]);
 
   return (
-    <div className="relative w-full max-w-md hidden md:block">
+    <div className="relative w-full max-w-md">
       {/* INPUT */}
       <input
         type="text"
@@ -56,7 +56,7 @@ export default function UserSearch() {
 
       {/* RESULTS */}
       {(users.length > 0 || communities.length > 0) && (
-        <div className="absolute top-12 w-full bg-white border border-[#e5e7eb] rounded-2xl shadow-xl overflow-hidden z-50">
+        <div className="absolute top-12 left-0 w-full bg-white border border-[#e5e7eb] rounded-2xl shadow-xl overflow-hidden z-50 max-h-[70vh] overflow-y-auto">
           {/* USERS */}
           {users.length > 0 && (
             <div className="p-2">
@@ -75,25 +75,27 @@ export default function UserSearch() {
 
                     setCommunities([]);
                   }}
-                  className="flex items-center gap-3 p-3 rounded-xl hover:bg-[#f7f7f7] transition"
+                  className="flex items-start gap-3 p-3 rounded-xl hover:bg-[#f7f7f7] transition"
                 >
                   {/* IMAGE */}
                   <img
                     src={user.image || "/default-avatar.png"}
                     alt="profile"
-                    className="w-11 h-11 rounded-full object-cover"
+                    className="w-10 h-10 sm:w-11 sm:h-11 rounded-full object-cover shrink-0"
                   />
 
                   {/* INFO */}
-                  <div>
-                    <p className="text-sm font-medium text-black">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-black truncate">
                       {user.name}
                     </p>
 
-                    <p className="text-xs text-[#71717a]">@{user.username}</p>
+                    <p className="text-xs text-[#71717a] truncate">
+                      @{user.username}
+                    </p>
 
                     {user.bio && (
-                      <p className="text-xs text-[#52525b] mt-1 line-clamp-1">
+                      <p className="text-xs text-[#52525b] mt-1 line-clamp-1 break-words">
                         {user.bio}
                       </p>
                     )}
@@ -121,21 +123,21 @@ export default function UserSearch() {
 
                     setCommunities([]);
                   }}
-                  className="flex items-center gap-3 p-3 rounded-xl hover:bg-[#f7f7f7] transition"
+                  className="flex items-start gap-3 p-3 rounded-xl hover:bg-[#f7f7f7] transition"
                 >
                   {/* COMMUNITY ICON */}
-                  <div className="w-11 h-11 rounded-full bg-black text-white flex items-center justify-center font-semibold">
+                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-black text-white flex items-center justify-center font-semibold shrink-0">
                     {community.name?.charAt(0)}
                   </div>
 
                   {/* INFO */}
-                  <div>
-                    <p className="text-sm font-medium text-black">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-black truncate">
                       {community.name}
                     </p>
 
                     {community.description && (
-                      <p className="text-xs text-[#71717a] line-clamp-1">
+                      <p className="text-xs text-[#71717a] line-clamp-1 break-words">
                         {community.description}
                       </p>
                     )}

@@ -31,11 +31,11 @@ export default function SinglePostPage() {
   }, []);
 
   if (!post) {
-    return <div className="p-10">Loading...</div>;
+    return <div className="p-4 sm:p-10 text-sm text-[#6b7280]">Loading...</div>;
   }
 
   return (
-    <main className="max-w-3xl mx-auto p-6">
+    <main className="max-w-3xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6">
       <PostCard
         id={post.id}
         author={post.author.username}

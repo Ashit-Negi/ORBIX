@@ -4,7 +4,7 @@ import Link from "next/link";
 
 import { useEffect, useRef, useState } from "react";
 
-import { Bell, MessageCircle } from "lucide-react";
+import { Bell, MessageCircle, Menu, X } from "lucide-react";
 
 import API from "@/lib/api";
 import socket from "@/lib/socket";
@@ -19,6 +19,8 @@ export default function Navbar() {
   const [showNotifications, setShowNotifications] = useState(false);
 
   const [notificationCount, setNotificationCount] = useState(0);
+
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const dropdownRef = useRef(null);
 
@@ -59,7 +61,10 @@ export default function Navbar() {
   // CLOSE DROPDOWN OUTSIDE CLICK
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target)
+      ) {
         setShowNotifications(false);
       }
     };
@@ -67,7 +72,10 @@ export default function Navbar() {
     document.addEventListener("mousedown", handleClickOutside);
 
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener(
+        "mousedown",
+        handleClickOutside,
+      );
     };
   }, []);
 
@@ -82,13 +90,13 @@ export default function Navbar() {
 
   return (
     <nav className="w-full bg-[#f3f3f1]/80 backdrop-blur-md border-b border-[#e7e7e4] sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-6">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 min-h-16 flex items-center justify-between gap-3">
         {/* LEFT */}
-        <div className="flex items-center gap-8 flex-1">
+        <div className="flex items-center gap-4 lg:gap-8 flex-1 min-w-0">
           {/* LOGO */}
           <Link
             href="/"
-            className="text-xl sm:text-2xl font-semibold tracking-tight text-[#111111] whitespace-nowrap"
+            className="text-xl sm:text-2xl font-semibold tracking-tight text-[#111111] whitespace-nowrap shrink-0"
           >
             Orbix
           </Link>
@@ -99,22 +107,29 @@ export default function Navbar() {
               Home
             </Link>
 
-            <Link href="/communities" className="hover:text-black transition">
+            <Link
+              href="/communities"
+              className="hover:text-black transition"
+            >
               Communities
             </Link>
           </div>
 
           {/* SEARCH */}
-          {user && <UserSearch />}
+          {user && (
+            <div className="hidden md:block flex-1 max-w-md">
+              <UserSearch />
+            </div>
+          )}
         </div>
 
         {/* ACTIONS */}
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           {/* CREATE COMMUNITY */}
           {user && (
             <Link
               href="/communities/create"
-              className="hidden sm:flex bg-white border border-[#e5e7eb] px-4 py-2 rounded-full text-sm text-[#111111] hover:bg-[#f7f7f7] transition whitespace-nowrap"
+              className="hidden xl:flex bg-white border border-[#e5e7eb] px-4 py-2 rounded-full text-sm text-[#111111] hover:bg-[#f7f7f7] transition whitespace-nowrap"
             >
               + Create Community
             </Link>
@@ -125,7 +140,7 @@ export default function Navbar() {
               {/* LOGIN */}
               <Link
                 href="/login"
-                className="text-sm text-[#52525b] hover:text-black transition"
+                className="hidden sm:block text-sm text-[#52525b] hover:text-black transition"
               >
                 Login
               </Link>
@@ -140,6 +155,22 @@ export default function Navbar() {
             </>
           ) : (
             <>
+              {/* DESKTOP SEARCH MOBILE */}
+              <div className="md:hidden">
+                <button
+                  onClick={() =>
+                    setMobileMenuOpen((prev) => !prev)
+                  }
+                  className="p-2 rounded-full hover:bg-black/5 transition"
+                >
+                  {mobileMenuOpen ? (
+                    <X size={22} />
+                  ) : (
+                    <Menu size={22} />
+                  )}
+                </button>
+              </div>
+
               {/* MESSAGES */}
               <Link
                 href="/messages"
@@ -174,7 +205,9 @@ export default function Navbar() {
 
                     {notificationCount > 0 && (
                       <span className="absolute -top-2 -right-2 min-w-[20px] h-5 px-1 bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center font-semibold">
-                        {notificationCount > 99 ? "99+" : notificationCount}
+                        {notificationCount > 99
+                          ? "99+"
+                          : notificationCount}
                       </span>
                     )}
                   </div>
@@ -182,8 +215,12 @@ export default function Navbar() {
 
                 {showNotifications && (
                   <NotificationDropdown
-                    setNotificationCount={setNotificationCount}
-                    setShowNotifications={setShowNotifications}
+                    setNotificationCount={
+                      setNotificationCount
+                    }
+                    setShowNotifications={
+                      setShowNotifications
+                    }
                   />
                 )}
               </div>
@@ -196,7 +233,7 @@ export default function Navbar() {
               {/* PROFILE */}
               <Link
                 href={`/profile/${user.username}`}
-                className="text-sm bg-black text-white px-4 py-2 rounded-full whitespace-nowrap"
+                className="hidden sm:block text-sm bg-black text-white px-4 py-2 rounded-full whitespace-nowrap"
               >
                 My Profile
               </Link>
@@ -204,7 +241,7 @@ export default function Navbar() {
               {/* LOGOUT */}
               <button
                 onClick={handleLogout}
-                className="bg-[#111111] text-white px-4 sm:px-5 py-2 rounded-full text-sm hover:opacity-90 transition whitespace-nowrap"
+                className="hidden sm:block bg-[#111111] text-white px-4 sm:px-5 py-2 rounded-full text-sm hover:opacity-90 transition whitespace-nowrap"
               >
                 Logout
               </button>
@@ -212,6 +249,56 @@ export default function Navbar() {
           )}
         </div>
       </div>
+
+      {/* MOBILE MENU */}
+      {mobileMenuOpen && user && (
+        <div className="md:hidden border-t border-[#e7e7e4] bg-[#f3f3f1] px-3 py-4 space-y-4">
+          {/* SEARCH */}
+          <UserSearch />
+
+          {/* NAV LINKS */}
+          <div className="flex flex-col gap-2">
+            <Link
+              href="/"
+              onClick={() => setMobileMenuOpen(false)}
+              className="px-4 py-3 rounded-2xl bg-white border border-[#e5e7eb] text-sm"
+            >
+              Home
+            </Link>
+
+            <Link
+              href="/communities"
+              onClick={() => setMobileMenuOpen(false)}
+              className="px-4 py-3 rounded-2xl bg-white border border-[#e5e7eb] text-sm"
+            >
+              Communities
+            </Link>
+
+            <Link
+              href="/communities/create"
+              onClick={() => setMobileMenuOpen(false)}
+              className="px-4 py-3 rounded-2xl bg-white border border-[#e5e7eb] text-sm"
+            >
+              + Create Community
+            </Link>
+
+            <Link
+              href={`/profile/${user.username}`}
+              onClick={() => setMobileMenuOpen(false)}
+              className="px-4 py-3 rounded-2xl bg-black text-white text-sm"
+            >
+              My Profile
+            </Link>
+
+            <button
+              onClick={handleLogout}
+              className="px-4 py-3 rounded-2xl bg-[#111111] text-white text-sm text-left"
+            >
+              Logout
+            </button>
+          </div>
+        </div>
+      )}
     </nav>
   );
 }

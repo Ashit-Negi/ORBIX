@@ -88,6 +88,7 @@ export default function CommentSection({ id, token, loggedInUserId }) {
       socket.off("comment-deleted", handleCommentDeleted);
     };
   }, [id, sortBy]);
+
   // CREATE COMMENT
   const handleCreateComment = async () => {
     try {
@@ -182,13 +183,13 @@ export default function CommentSection({ id, token, loggedInUserId }) {
   return (
     <div className="mt-6 border-t border-[#e5e7eb] pt-5">
       {/* HEADER */}
-      <div className="flex items-center justify-between mb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
         <h3 className="text-sm font-medium text-[#111111]">Comments</h3>
 
         <select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value)}
-          className="bg-white border border-[#e5e7eb] rounded-xl px-3 py-2 text-sm outline-none"
+          className="w-full sm:w-auto bg-white border border-[#e5e7eb] rounded-xl px-3 py-2 text-sm outline-none"
         >
           <option value="top">Top</option>
 

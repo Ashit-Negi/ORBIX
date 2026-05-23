@@ -11,13 +11,13 @@ export default function CommentInput({
         placeholder="Write a comment..."
         value={commentText}
         onChange={(e) => setCommentText(e.target.value)}
-        className="flex-1 bg-[#f7f7f7] border border-[#e5e7eb] rounded-2xl px-4 py-3 outline-none text-sm w-full"
+        className="flex-1 w-full min-w-0 bg-[#f7f7f7] border border-[#e5e7eb] rounded-2xl px-4 py-3 outline-none text-sm sm:text-base"
       />
 
       {/* BUTTON */}
       <button
         onClick={handleCreateComment}
-        className="bg-[#111111] text-white px-5 py-3 rounded-2xl text-sm w-full sm:w-auto"
+        className="w-full sm:w-auto shrink-0 bg-[#111111] text-white px-5 py-3 rounded-2xl text-sm hover:opacity-90 transition"
       >
         Post
       </button>

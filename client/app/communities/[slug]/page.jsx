@@ -281,62 +281,70 @@ export default function SingleCommunityPage() {
 
   if (loading) {
     return (
-      <main className="p-10 text-sm text-[#6b7280]">Loading community...</main>
+      <main className="p-4 sm:p-10 text-sm text-[#6b7280]">
+        Loading community...
+      </main>
     );
   }
 
   if (!community) {
     return (
-      <main className="p-10 text-sm text-red-500">Community not found</main>
+      <main className="p-4 sm:p-10 text-sm text-red-500">
+        Community not found
+      </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-[#f3f3f1] px-4 py-10">
+    <main className="min-h-screen bg-[#f3f3f1] px-3 sm:px-4 py-6 sm:py-10">
       <div className="max-w-6xl mx-auto">
         {/* COMMUNITY HEADER */}
-        <div className="bg-white border border-[#e5e7eb] rounded-3xl p-6 mb-6">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <p className="text-sm text-[#6b7280] mb-2">Community</p>
+        <div className="bg-white border border-[#e5e7eb] rounded-2xl sm:rounded-3xl p-4 sm:p-6 mb-5 sm:mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-5">
+            <div className="min-w-0 flex-1">
+              <p className="text-xs sm:text-sm text-[#6b7280] mb-2">
+                Community
+              </p>
 
-              <h1 className="text-4xl font-semibold tracking-tight text-[#111111] mb-3">
+              <h1 className="text-2xl sm:text-4xl break-words font-semibold tracking-tight text-[#111111] mb-3">
                 r/{community.slug}
               </h1>
 
-              <p className="text-sm text-[#52525b] leading-6 max-w-2xl">
+              <p className="text-sm text-[#52525b] leading-6 max-w-2xl break-words">
                 {community.description || "No description provided."}
               </p>
 
-              <div className="flex items-center gap-4 mt-5 text-sm text-[#6b7280]">
+              <div className="flex flex-wrap items-center gap-3 sm:gap-4 mt-5 text-xs sm:text-sm text-[#6b7280]">
                 <p>👥 {community._count?.memberships} members</p>
 
                 <p>📝 {community._count?.posts} posts</p>
               </div>
             </div>
 
-            {joined ? (
-              <button
-                onClick={handleLeave}
-                className="bg-[#f7f7f7] border border-[#e5e7eb] px-5 py-2 rounded-full text-sm"
-              >
-                Joined
-              </button>
-            ) : (
-              <button
-                onClick={handleJoin}
-                className="bg-[#111111] text-white px-5 py-2 rounded-full text-sm"
-              >
-                Join
-              </button>
-            )}
+            <div className="w-full sm:w-auto">
+              {joined ? (
+                <button
+                  onClick={handleLeave}
+                  className="w-full sm:w-auto bg-[#f7f7f7] border border-[#e5e7eb] px-5 py-2.5 rounded-full text-sm"
+                >
+                  Joined
+                </button>
+              ) : (
+                <button
+                  onClick={handleJoin}
+                  className="w-full sm:w-auto bg-[#111111] text-white px-5 py-2.5 rounded-full text-sm"
+                >
+                  Join
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
         {/* CREATE POST */}
         {isAdmin && (
-          <div className="bg-white border border-[#e5e7eb] rounded-3xl p-5 mb-6">
-            <h2 className="text-sm font-semibold text-[#111111] mb-4">
+          <div className="bg-white border border-[#e5e7eb] rounded-2xl sm:rounded-3xl p-4 sm:p-5 mb-5 sm:mb-6">
+            <h2 className="text-sm font-semibold text-[#111111] mb-4 break-words">
               Create Post in r/{community.slug}
             </h2>
 
@@ -345,14 +353,14 @@ export default function SingleCommunityPage() {
               placeholder="Post title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full bg-[#f7f7f7] border border-[#e5e7eb] rounded-2xl px-4 py-3 outline-none mb-3"
+              className="w-full text-sm sm:text-base bg-[#f7f7f7] border border-[#e5e7eb] rounded-2xl px-4 py-3 outline-none mb-3"
             />
 
             <textarea
               placeholder="Share something with the community..."
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              className="w-full bg-[#f7f7f7] border border-[#e5e7eb] rounded-2xl px-4 py-3 outline-none resize-none h-32"
+              className="w-full text-sm sm:text-base bg-[#f7f7f7] border border-[#e5e7eb] rounded-2xl px-4 py-3 outline-none resize-none h-28 sm:h-32"
             />
 
             <select
@@ -365,11 +373,11 @@ export default function SingleCommunityPage() {
               <option value="MEMBERS_ONLY">🔒 Members Only</option>
             </select>
 
-            <div className="flex justify-end mt-4">
+            <div className="flex justify-stretch sm:justify-end mt-4">
               <button
                 onClick={handleCreatePost}
                 disabled={creatingPost}
-                className="bg-[#111111] text-white px-5 py-2 rounded-full text-sm hover:opacity-90 transition disabled:opacity-50"
+                className="w-full sm:w-auto bg-[#111111] text-white px-5 py-2.5 rounded-full text-sm hover:opacity-90 transition disabled:opacity-50"
               >
                 {creatingPost ? "Publishing..." : "Publish"}
               </button>
@@ -378,9 +386,9 @@ export default function SingleCommunityPage() {
         )}
 
         {/* POSTS */}
-        <div className="space-y-5">
+        <div className="space-y-4 sm:space-y-5">
           {posts.length === 0 ? (
-            <div className="bg-white border border-[#e5e7eb] rounded-3xl p-8 text-sm text-[#6b7280]">
+            <div className="bg-white border border-[#e5e7eb] rounded-2xl sm:rounded-3xl p-6 sm:p-8 text-sm text-[#6b7280]">
               No posts yet.
             </div>
           ) : (

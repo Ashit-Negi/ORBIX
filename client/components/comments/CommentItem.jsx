@@ -121,8 +121,8 @@ export default function CommentItem({
     <div
       className={`${
         depth === 0
-          ? "bg-[#f7f7f7] rounded-2xl p-4"
-          : "mt-4 pl-4 border-l border-[#e5e7eb]"
+          ? "bg-[#f7f7f7] rounded-2xl p-3 sm:p-4"
+          : "mt-4 pl-3 sm:pl-4 border-l border-[#e5e7eb]"
       }`}
     >
       <div className="flex gap-3">
@@ -131,9 +131,9 @@ export default function CommentItem({
 
         <div className="flex-1 min-w-0">
           {/* HEADER */}
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-[#111111]">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-[#111111] break-words">
                 {comment.author.username}
               </p>
 
@@ -144,17 +144,17 @@ export default function CommentItem({
 
             {/* OWNER ACTIONS */}
             {comment.author.id === loggedInUserId && (
-              <div className="flex gap-3 text-xs">
+              <div className="flex items-center gap-3 text-xs shrink-0">
                 <button
                   onClick={() => startEditing(comment)}
-                  className="text-[#6b7280] hover:text-black"
+                  className="text-[#6b7280] hover:text-black whitespace-nowrap"
                 >
                   Edit
                 </button>
 
                 <button
                   onClick={() => openDeleteModal(comment.id)}
-                  className="text-red-500"
+                  className="text-red-500 whitespace-nowrap"
                 >
                   Delete
                 </button>
@@ -164,17 +164,17 @@ export default function CommentItem({
 
           {/* CONTENT */}
           {editingCommentId === comment.id ? (
-            <div className="flex gap-2 mt-2">
+            <div className="flex flex-col sm:flex-row gap-2 mt-2">
               <input
                 type="text"
                 value={editText}
                 onChange={(e) => setEditText(e.target.value)}
-                className="flex-1 bg-white border border-[#e5e7eb] rounded-xl px-3 py-2 text-sm outline-none"
+                className="flex-1 min-w-0 bg-white border border-[#e5e7eb] rounded-xl px-3 py-2 text-sm outline-none"
               />
 
               <button
                 onClick={() => handleUpdateComment(comment.id)}
-                className="bg-black text-white px-3 rounded-xl text-sm"
+                className="w-full sm:w-auto bg-black text-white px-4 py-2 rounded-xl text-sm"
               >
                 Save
               </button>
@@ -186,7 +186,7 @@ export default function CommentItem({
           )}
 
           {/* ACTIONS */}
-          <div className="flex items-center gap-5 mt-3">
+          <div className="flex items-center gap-5 mt-3 flex-wrap">
             {/* LIKE */}
             <button
               onClick={handleCommentLike}
@@ -225,7 +225,7 @@ export default function CommentItem({
 
           {/* REPLIES */}
           {depth === 0 && comment.replies && comment.replies.length > 0 && (
-            <div className="mt-4 space-y-4 ml-4">
+            <div className="mt-4 space-y-4 ml-2 sm:ml-4">
               {comment.replies.slice(0, visibleReplies).map((reply) => (
                 <CommentItem
                   key={reply.id}

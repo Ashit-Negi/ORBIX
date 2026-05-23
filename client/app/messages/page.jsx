@@ -32,18 +32,31 @@ export default function MessagesPage() {
   }, []);
 
   return (
-    <div className="flex h-[calc(100vh-70px)]">
-      {/* SIDEBAR */}
-      <MessageSidebar
-        socket={socket}
-        selectedConversation={selectedConversation}
-        setSelectedConversation={setSelectedConversation}
-      />
+    <div className="flex flex-col md:flex-row h-[calc(100vh-70px)] overflow-hidden">
+      {/* MOBILE SIDEBAR */}
+      <div
+        className={`${
+          selectedConversation ? "hidden md:flex" : "flex"
+        } w-full md:w-auto`}
+      >
+        <MessageSidebar
+          socket={socket}
+          selectedConversation={selectedConversation}
+          setSelectedConversation={setSelectedConversation}
+        />
+      </div>
 
       {/* CHAT AREA */}
-      <div className="flex-1">
+      <div
+        className={`${
+          selectedConversation ? "flex" : "hidden md:flex"
+        } flex-1 min-w-0`}
+      >
         {selectedConversation ? (
-          <ChatWindow selectedConversation={selectedConversation} />
+          <ChatWindow
+            selectedConversation={selectedConversation}
+            setSelectedConversation={setSelectedConversation}
+          />
         ) : (
           <EmptyChat />
         )}

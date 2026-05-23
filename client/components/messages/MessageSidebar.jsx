@@ -167,10 +167,10 @@ export default function MessageSidebar({
   };
 
   return (
-    <div className="w-[350px] border-r border-gray-200 bg-white flex flex-col">
+    <div className="w-full md:w-[350px] border-r border-gray-200 bg-white flex flex-col h-full min-w-0">
       {/* HEADER */}
-      <div className="p-4 border-b border-gray-200">
-        <h2 className="text-xl font-semibold">Messages</h2>
+      <div className="p-3 sm:p-4 border-b border-gray-200">
+        <h2 className="text-lg sm:text-xl font-semibold">Messages</h2>
 
         {/* SEARCH */}
         <input
@@ -178,7 +178,7 @@ export default function MessageSidebar({
           placeholder="Search connections..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full mt-4 border border-gray-300 rounded-full px-4 py-2 outline-none focus:border-black"
+          className="w-full mt-4 text-sm sm:text-base border border-gray-300 rounded-full px-4 py-2 outline-none focus:border-black"
         />
       </div>
 
@@ -217,13 +217,13 @@ export default function MessageSidebar({
               <button
                 key={user.id}
                 onClick={() => handleStartConversation(user.id)}
-                className="w-full flex items-center gap-3 p-4 hover:bg-gray-50 transition text-left border-b border-gray-100"
+                className="w-full flex items-center gap-3 p-3 sm:p-4 hover:bg-gray-50 transition text-left border-b border-gray-100"
               >
-                <div className="relative">
+                <div className="relative shrink-0">
                   <img
                     src={user.image || "https://placehold.co/100x100"}
                     alt="profile"
-                    className="w-12 h-12 rounded-full object-cover"
+                    className="w-11 h-11 sm:w-12 sm:h-12 rounded-full object-cover"
                   />
 
                   {onlineUsers.includes(user.id) && (
@@ -231,12 +231,14 @@ export default function MessageSidebar({
                   )}
                 </div>
 
-                <div className="flex-1">
-                  <h3 className="font-medium text-sm">
+                <div className="flex-1 min-w-0 overflow-hidden">
+                  <h3 className="font-medium text-sm truncate">
                     {user.name || user.username}
                   </h3>
 
-                  <p className="text-xs text-gray-500">@{user.username}</p>
+                  <p className="text-xs text-gray-500 truncate">
+                    @{user.username}
+                  </p>
                 </div>
               </button>
             ))

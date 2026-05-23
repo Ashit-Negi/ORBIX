@@ -130,3 +130,32 @@ html {
 
   border-radius: 999px;
 }
+
+/* MOBILE SAFE */
+* {
+  min-width: 0;
+}
+
+/* HIDE SCROLLBAR */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+
+  scrollbar-width: none;
+}
+
+/* BETTER MOBILE INPUT ZOOM */
+input,
+textarea,
+select {
+  font-size: 16px;
+}
+
+/* PREVENT HORIZONTAL SCROLL */
+body,
+html {
+  overflow-x: hidden;
+}

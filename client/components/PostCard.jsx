@@ -283,28 +283,28 @@ export default function PostCard({
   };
 
   return (
-    <div className="bg-white border border-[#e5e7eb] rounded-3xl p-5 sm:p-6 shadow-sm">
+    <div className="bg-white border border-[#e5e7eb] rounded-2xl sm:rounded-3xl p-4 sm:p-5 md:p-6 shadow-sm overflow-hidden">
       {/* HEADER */}
-      <div className="flex items-start justify-between mb-5">
-        <div className="flex items-center gap-3">
+      <div className="flex items-start justify-between gap-3 mb-5">
+        <div className="flex items-center gap-3 min-w-0 flex-1">
           {/* PROFILE IMAGE */}
           <img
             src={authorImage || "/default-avatar.png"}
             alt="profile"
-            className="w-10 h-10 sm:w-11 sm:h-11 rounded-full object-cover"
+            className="w-10 h-10 sm:w-11 sm:h-11 rounded-full object-cover shrink-0"
           />
 
-          <div>
+          <div className="min-w-0">
             <Link
               href={`/profile/${author}`}
-              className="font-medium text-[#111111] text-sm sm:text-base hover:underline"
+              className="font-medium text-[#111111] text-sm sm:text-base hover:underline truncate block"
             >
               {authorName || author}
             </Link>
 
-            <div className="flex items-center gap-2 text-xs text-[#6b7280]">
+            <div className="flex items-center gap-2 text-xs text-[#6b7280] flex-wrap">
               {community && (
-                <p>
+                <p className="break-words">
                   Posted in{" "}
                   <span className="text-[#111111] font-medium">
                     {community.name}
@@ -317,7 +317,7 @@ export default function PostCard({
 
         {/* 3 DOT MENU */}
         {isOwner && (
-          <div className="relative">
+          <div className="relative shrink-0">
             <button
               onClick={() => setShowMenu(!showMenu)}
               className="w-9 h-9 rounded-full hover:bg-[#f7f7f7] transition text-[#6b7280] text-xl"
@@ -356,10 +356,10 @@ export default function PostCard({
           type="text"
           value={editedTitle}
           onChange={(e) => setEditedTitle(e.target.value)}
-          className="w-full bg-[#f7f7f7] border border-[#e5e7eb] rounded-2xl px-4 py-3 outline-none mb-4"
+          className="w-full bg-[#f7f7f7] border border-[#e5e7eb] rounded-2xl px-4 py-3 outline-none mb-4 text-sm sm:text-base"
         />
       ) : (
-        <h2 className="text-[22px] sm:text-[28px] leading-[30px] sm:leading-[36px] font-semibold tracking-tight text-[#111111] mb-4 break-words">
+        <h2 className="text-xl sm:text-[28px] leading-8 sm:leading-[36px] font-semibold tracking-tight text-[#111111] mb-4 break-words">
           {localTitle}
         </h2>
       )}
@@ -369,10 +369,10 @@ export default function PostCard({
         <textarea
           value={editedContent}
           onChange={(e) => setEditedContent(e.target.value)}
-          className="w-full bg-[#f7f7f7] border border-[#e5e7eb] rounded-2xl px-4 py-3 outline-none resize-none h-32"
+          className="w-full bg-[#f7f7f7] border border-[#e5e7eb] rounded-2xl px-4 py-3 outline-none resize-none h-32 text-sm sm:text-base"
         />
       ) : (
-        <p className="text-[#52525b] leading-7 sm:leading-8 text-[14px] sm:text-[15px] break-words">
+        <p className="text-[#52525b] leading-7 sm:leading-8 text-[14px] sm:text-[15px] break-words whitespace-pre-wrap">
           {localContent}
         </p>
       )}
@@ -390,10 +390,10 @@ export default function PostCard({
       )}
 
       {/* STATS */}
-      <div className="flex items-center justify-between mt-6 sm:mt-8 pb-4 border-b border-[#e5e7eb] text-sm text-[#6b7280]">
-        <p>❤️ {score}</p>
+      <div className="flex items-center justify-between gap-3 mt-6 sm:mt-8 pb-4 border-b border-[#e5e7eb] text-sm text-[#6b7280]">
+        <p className="whitespace-nowrap">❤️ {score}</p>
 
-        <p>💬 {localCommentCount}</p>
+        <p className="whitespace-nowrap">💬 {localCommentCount}</p>
       </div>
 
       {/* ACTIONS */}
@@ -401,7 +401,7 @@ export default function PostCard({
         {/* LIKE */}
         <button
           onClick={handleVote}
-          className={`h-11 rounded-2xl transition text-sm font-medium ${
+          className={`h-10 sm:h-11 rounded-2xl transition text-xs sm:text-sm font-medium px-2 ${
             currentUserVote
               ? "bg-black text-white"
               : "hover:bg-[#f7f7f7] text-[#52525b]"
@@ -413,7 +413,7 @@ export default function PostCard({
         {/* COMMENT */}
         <button
           onClick={handleToggleComments}
-          className="h-11 rounded-2xl hover:bg-[#f7f7f7] transition text-sm font-medium text-[#52525b]"
+          className="h-10 sm:h-11 rounded-2xl hover:bg-[#f7f7f7] transition text-xs sm:text-sm font-medium text-[#52525b] px-2"
         >
           {showComments ? "✖ Hide" : "💬 Comment"}
         </button>
@@ -421,7 +421,7 @@ export default function PostCard({
         {/* SHARE */}
         <button
           onClick={handleShare}
-          className="h-11 rounded-2xl hover:bg-[#f7f7f7] transition text-sm font-medium text-[#52525b]"
+          className="h-10 sm:h-11 rounded-2xl hover:bg-[#f7f7f7] transition text-xs sm:text-sm font-medium text-[#52525b] px-2"
         >
           📤 Share
         </button>

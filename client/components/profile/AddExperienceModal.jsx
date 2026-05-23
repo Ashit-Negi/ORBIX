@@ -76,15 +76,15 @@ export default function AddExperienceModal({ isOpen, setIsOpen, setProfile }) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center px-4">
-      <div className="w-full max-w-2xl dark-card rounded-[32px] p-7 max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center px-3 sm:px-4 py-4">
+      <div className="w-full max-w-2xl dark-card rounded-[24px] sm:rounded-[32px] p-4 sm:p-7 max-h-[90vh] overflow-y-auto">
         {/* HEADER */}
-        <div className="flex items-center justify-between mb-8">
-          <h2 className="text-3xl font-bold">Add Experience</h2>
+        <div className="flex items-center justify-between gap-4 mb-6 sm:mb-8">
+          <h2 className="text-2xl sm:text-3xl font-bold">Add Experience</h2>
 
           <button
             onClick={() => setIsOpen(false)}
-            className="w-10 h-10 rounded-full hover:bg-white/5 flex items-center justify-center"
+            className="w-10 h-10 rounded-full hover:bg-white/5 flex items-center justify-center shrink-0"
           >
             <X size={20} />
           </button>
@@ -102,7 +102,7 @@ export default function AddExperienceModal({ isOpen, setIsOpen, setProfile }) {
               value={formData.title}
               onChange={handleChange}
               placeholder="MERN Developer"
-              className="w-full mt-2 bg-white/5 border border-white/10 rounded-2xl px-5 py-4 outline-none"
+              className="w-full mt-2 bg-white/5 border border-white/10 rounded-2xl px-4 sm:px-5 py-3 sm:py-4 outline-none text-sm sm:text-base"
             />
           </div>
 
@@ -116,7 +116,7 @@ export default function AddExperienceModal({ isOpen, setIsOpen, setProfile }) {
               value={formData.company}
               onChange={handleChange}
               placeholder="Google"
-              className="w-full mt-2 bg-white/5 border border-white/10 rounded-2xl px-5 py-4 outline-none"
+              className="w-full mt-2 bg-white/5 border border-white/10 rounded-2xl px-4 sm:px-5 py-3 sm:py-4 outline-none text-sm sm:text-base"
             />
           </div>
 
@@ -130,7 +130,7 @@ export default function AddExperienceModal({ isOpen, setIsOpen, setProfile }) {
               value={formData.employmentType}
               onChange={handleChange}
               placeholder="Full Time"
-              className="w-full mt-2 bg-white/5 border border-white/10 rounded-2xl px-5 py-4 outline-none"
+              className="w-full mt-2 bg-white/5 border border-white/10 rounded-2xl px-4 sm:px-5 py-3 sm:py-4 outline-none text-sm sm:text-base"
             />
           </div>
 
@@ -144,7 +144,7 @@ export default function AddExperienceModal({ isOpen, setIsOpen, setProfile }) {
               value={formData.location}
               onChange={handleChange}
               placeholder="Remote"
-              className="w-full mt-2 bg-white/5 border border-white/10 rounded-2xl px-5 py-4 outline-none"
+              className="w-full mt-2 bg-white/5 border border-white/10 rounded-2xl px-4 sm:px-5 py-3 sm:py-4 outline-none text-sm sm:text-base"
             />
           </div>
 
@@ -157,7 +157,7 @@ export default function AddExperienceModal({ isOpen, setIsOpen, setProfile }) {
               name="startDate"
               value={formData.startDate}
               onChange={handleChange}
-              className="w-full mt-2 bg-white/5 border border-white/10 rounded-2xl px-5 py-4 outline-none"
+              className="w-full mt-2 bg-white/5 border border-white/10 rounded-2xl px-4 sm:px-5 py-3 sm:py-4 outline-none text-sm sm:text-base"
             />
           </div>
 
@@ -171,21 +171,24 @@ export default function AddExperienceModal({ isOpen, setIsOpen, setProfile }) {
                 name="endDate"
                 value={formData.endDate}
                 onChange={handleChange}
-                className="w-full mt-2 bg-white/5 border border-white/10 rounded-2xl px-5 py-4 outline-none"
+                className="w-full mt-2 bg-white/5 border border-white/10 rounded-2xl px-4 sm:px-5 py-3 sm:py-4 outline-none text-sm sm:text-base"
               />
             </div>
           )}
 
           {/* CURRENTLY WORKING */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-start gap-3">
             <input
               type="checkbox"
               name="currentlyWorking"
               checked={formData.currentlyWorking}
               onChange={handleChange}
+              className="mt-1 shrink-0"
             />
 
-            <p className="text-sm text-[#d1d5db]">I currently work here</p>
+            <p className="text-sm text-[#d1d5db] leading-6">
+              I currently work here
+            </p>
           </div>
 
           {/* DESCRIPTION */}
@@ -198,7 +201,7 @@ export default function AddExperienceModal({ isOpen, setIsOpen, setProfile }) {
               onChange={handleChange}
               rows={5}
               placeholder="Describe your work..."
-              className="w-full mt-2 bg-white/5 border border-white/10 rounded-2xl px-5 py-4 outline-none resize-none"
+              className="w-full mt-2 bg-white/5 border border-white/10 rounded-2xl px-4 sm:px-5 py-3 sm:py-4 outline-none resize-none text-sm sm:text-base"
             />
           </div>
 
@@ -212,17 +215,24 @@ export default function AddExperienceModal({ isOpen, setIsOpen, setProfile }) {
               value={formData.skills}
               onChange={handleChange}
               placeholder="React, Node.js, Prisma"
-              className="w-full mt-2 bg-white/5 border border-white/10 rounded-2xl px-5 py-4 outline-none"
+              className="w-full mt-2 bg-white/5 border border-white/10 rounded-2xl px-4 sm:px-5 py-3 sm:py-4 outline-none text-sm sm:text-base"
             />
           </div>
         </div>
 
         {/* ACTION */}
-        <div className="flex justify-end mt-8">
+        <div className="flex flex-col sm:flex-row justify-end gap-3 mt-7 sm:mt-8">
+          <button
+            onClick={() => setIsOpen(false)}
+            className="w-full sm:w-auto border border-white/10 hover:bg-white/5 px-6 py-3 rounded-2xl transition-all duration-300 text-sm sm:text-base"
+          >
+            Cancel
+          </button>
+
           <button
             onClick={handleAddExperience}
             disabled={loading}
-            className="bg-[#22c55e] hover:bg-[#16a34a] text-black font-semibold px-7 py-4 rounded-2xl transition-all duration-300"
+            className="w-full sm:w-auto bg-[#22c55e] hover:bg-[#16a34a] text-black font-semibold px-6 sm:px-7 py-3 sm:py-4 rounded-2xl transition-all duration-300 text-sm sm:text-base"
           >
             {loading ? "Saving..." : "Save Experience"}
           </button>
