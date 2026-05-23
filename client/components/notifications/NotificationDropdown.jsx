@@ -110,7 +110,30 @@ export default function NotificationDropdown({
   console.log(notifications);
 
   return (
-    <div className="absolute right-0 sm:right-0 left-1/2 sm:left-auto -translate-x-1/2 sm:translate-x-0 mt-3 w-[95vw] max-w-[360px] bg-white border border-[#e5e7eb] rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden z-50">
+    <div
+      className="
+    absolute
+    top-14
+    right-0
+
+    z-[999]
+
+    w-[320px]
+    max-w-[calc(100vw-16px)]
+
+    sm:w-[380px]
+
+    bg-white
+    border
+    border-[#e5e7eb]
+
+    rounded-2xl
+    sm:rounded-3xl
+
+    shadow-2xl
+    overflow-hidden
+  "
+    >
       {/* HEADER */}
       <div className="p-4 sm:p-5 border-b border-[#f1f1f1] flex items-center justify-between gap-3">
         <h2 className="font-semibold text-base sm:text-lg">Notifications</h2>
@@ -121,7 +144,7 @@ export default function NotificationDropdown({
       </div>
 
       {/* BODY */}
-      <div className="max-h-[70vh] sm:max-h-[500px] overflow-y-auto">
+      <div className="max-h-[75vh] overflow-y-auto overscroll-contain">
         {notifications.length === 0 ? (
           <div className="p-8 sm:p-10 text-center">
             <p className="text-sm text-[#6b7280]">No notifications yet</p>

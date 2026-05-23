@@ -61,10 +61,7 @@ export default function Navbar() {
   // CLOSE DROPDOWN OUTSIDE CLICK
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target)
-      ) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setShowNotifications(false);
       }
     };
@@ -72,10 +69,7 @@ export default function Navbar() {
     document.addEventListener("mousedown", handleClickOutside);
 
     return () => {
-      document.removeEventListener(
-        "mousedown",
-        handleClickOutside,
-      );
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
@@ -89,8 +83,8 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="w-full bg-[#f3f3f1]/80 backdrop-blur-md border-b border-[#e7e7e4] sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 min-h-16 flex items-center justify-between gap-3">
+    <nav className="w-full bg-[#f3f3f1]/80 backdrop-blur-md border-b border-[#e7e7e4] sticky top-0 z-50 overflow-visible">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 min-h-16 flex items-center justify-between gap-3 relative">
         {/* LEFT */}
         <div className="flex items-center gap-4 lg:gap-8 flex-1 min-w-0">
           {/* LOGO */}
@@ -107,19 +101,25 @@ export default function Navbar() {
               Home
             </Link>
 
-            <Link
-              href="/communities"
-              className="hover:text-black transition"
-            >
+            <Link href="/communities" className="hover:text-black transition">
               Communities
             </Link>
           </div>
 
           {/* SEARCH */}
+          {/* SEARCH */}
           {user && (
-            <div className="hidden md:block flex-1 max-w-md">
-              <UserSearch />
-            </div>
+            <>
+              {/* DESKTOP SEARCH */}
+              <div className="hidden md:block flex-1 max-w-md">
+                <UserSearch />
+              </div>
+
+              {/* MOBILE SEARCH */}
+              <div className="md:hidden flex-1 max-w-[150px]">
+                <UserSearch />
+              </div>
+            </>
           )}
         </div>
 
@@ -158,16 +158,10 @@ export default function Navbar() {
               {/* DESKTOP SEARCH MOBILE */}
               <div className="md:hidden">
                 <button
-                  onClick={() =>
-                    setMobileMenuOpen((prev) => !prev)
-                  }
+                  onClick={() => setMobileMenuOpen((prev) => !prev)}
                   className="p-2 rounded-full hover:bg-black/5 transition"
                 >
-                  {mobileMenuOpen ? (
-                    <X size={22} />
-                  ) : (
-                    <Menu size={22} />
-                  )}
+                  {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
                 </button>
               </div>
 
@@ -205,9 +199,7 @@ export default function Navbar() {
 
                     {notificationCount > 0 && (
                       <span className="absolute -top-2 -right-2 min-w-[20px] h-5 px-1 bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center font-semibold">
-                        {notificationCount > 99
-                          ? "99+"
-                          : notificationCount}
+                        {notificationCount > 99 ? "99+" : notificationCount}
                       </span>
                     )}
                   </div>
@@ -215,12 +207,8 @@ export default function Navbar() {
 
                 {showNotifications && (
                   <NotificationDropdown
-                    setNotificationCount={
-                      setNotificationCount
-                    }
-                    setShowNotifications={
-                      setShowNotifications
-                    }
+                    setNotificationCount={setNotificationCount}
+                    setShowNotifications={setShowNotifications}
                   />
                 )}
               </div>
@@ -254,7 +242,6 @@ export default function Navbar() {
       {mobileMenuOpen && user && (
         <div className="md:hidden border-t border-[#e7e7e4] bg-[#f3f3f1] px-3 py-4 space-y-4">
           {/* SEARCH */}
-          <UserSearch />
 
           {/* NAV LINKS */}
           <div className="flex flex-col gap-2">
