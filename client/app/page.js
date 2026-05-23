@@ -218,9 +218,12 @@ export default function Home() {
                   People You May Know
                 </h2>
 
-                <button className="text-xs text-[#71717a] whitespace-nowrap">
+                <Link
+                  href="/people"
+                  className="text-xs text-[#71717a] whitespace-nowrap hover:text-black transition"
+                >
                   View all
-                </button>
+                </Link>
               </div>
 
               <div className="space-y-4">
@@ -232,24 +235,18 @@ export default function Home() {
                       className="flex items-center justify-between gap-3"
                     >
                       <div className="flex items-center gap-3 min-w-0">
-                        <img
-                          src={
-                            user.image ? (
-                              <img
-                                src={user.image}
-                                alt="profile"
-                                className="w-10 h-10 sm:w-11 sm:h-11 rounded-full object-cover shrink-0"
-                              />
-                            ) : (
-                              <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-black text-white flex items-center justify-center text-sm font-semibold shrink-0">
-                                {user.username?.charAt(0).toUpperCase()}
-                              </div>
-                            )
-                          }
-                          alt="profile"
-                          className="w-10 h-10 sm:w-11 sm:h-11 rounded-full object-cover shrink-0"
-                        />
-
+                        {/* for image */}
+                        {user.image ? (
+                          <img
+                            src={user.image}
+                            alt="profile"
+                            className="w-10 h-10 sm:w-11 sm:h-11 rounded-full object-cover shrink-0"
+                          />
+                        ) : (
+                          <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-black text-white flex items-center justify-center text-sm font-semibold shrink-0">
+                            {user.username?.charAt(0).toUpperCase()}
+                          </div>
+                        )}
                         <div className="min-w-0">
                           <p className="text-sm font-medium text-[#111111] truncate">
                             {user.name}
