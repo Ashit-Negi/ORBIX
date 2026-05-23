@@ -14,6 +14,8 @@ export default function NotificationDropdown({
 }) {
   const [notifications, setNotifications] = useState([]);
 
+  const [visibleCount, setVisibleCount] = useState(6);
+
   // FETCH NOTIFICATIONS
   const fetchNotifications = async () => {
     try {
@@ -107,32 +109,30 @@ export default function NotificationDropdown({
     (notification) => !notification.read,
   ).length;
 
-  console.log(notifications);
-
   return (
     <div
       className="
-    absolute
-    top-14
-    right-0
+        absolute
+        top-14
+        right-0
 
-    z-[999]
+        z-[999]
 
-    w-[320px]
-    max-w-[calc(100vw-16px)]
+        w-[320px]
+        max-w-[calc(100vw-16px)]
 
-    sm:w-[380px]
+        sm:w-[380px]
 
-    bg-white
-    border
-    border-[#e5e7eb]
+        bg-white
+        border
+        border-[#e5e7eb]
 
-    rounded-2xl
-    sm:rounded-3xl
+        rounded-2xl
+        sm:rounded-3xl
 
-    shadow-2xl
-    overflow-hidden
-  "
+        shadow-2xl
+        overflow-hidden
+      "
     >
       {/* HEADER */}
       <div className="p-4 sm:p-5 border-b border-[#f1f1f1] flex items-center justify-between gap-3">
@@ -150,14 +150,27 @@ export default function NotificationDropdown({
             <p className="text-sm text-[#6b7280]">No notifications yet</p>
           </div>
         ) : (
-          notifications.map((notification) => (
-            <NotificationCard
-              key={notification.id}
-              notification={notification}
-              onAccept={acceptRequest}
-              setShowNotifications={setShowNotifications}
-            />
-          ))
+          <>
+            {notifications.slice(0, visibleCount).map((notification) => (
+              <NotificationCard
+                key={notification.id}
+                notification={notification}
+                onAccept={acceptRequest}
+                setShowNotifications={setShowNotifications}
+              />
+            ))}
+
+            {visibleCount < notifications.length && (
+              <div className="p-3 border-t border-[#f3f4f6]">
+                <button
+                  onClick={() => setVisibleCount((prev) => prev + 6)}
+                  className="w-full py-2 rounded-xl bg-[#f8fafc] hover:bg-[#f1f5f9] text-sm font-medium transition"
+                >
+                  Load More
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

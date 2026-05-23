@@ -107,9 +107,9 @@ export default function ChatWindow({
   }, [messages]);
 
   return (
-    <div className="flex flex-col h-full bg-[#fafafa] min-w-0">
+    <div className="flex flex-col h-full bg-[#f8fafc] min-w-0">
       {/* HEADER */}
-      <div className="h-16 px-3 sm:px-6 border-b border-gray-200 bg-white flex items-center justify-between gap-3">
+      <div className="h-16 px-3 sm:px-6 border-b border-gray-200 bg-white flex items-center justify-between gap-3 sticky top-0 z-10">
         <div className="flex items-center gap-3 min-w-0">
           {/* MOBILE BACK BUTTON */}
           <button
@@ -138,7 +138,7 @@ export default function ChatWindow({
       </div>
 
       {/* MESSAGES */}
-      <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3">
+      <div className="flex-1 overflow-y-auto px-3 py-4 sm:p-4 space-y-3 overscroll-contain">
         {loading ? (
           <p className="text-sm text-gray-500">Loading messages...</p>
         ) : messages.length === 0 ? (
