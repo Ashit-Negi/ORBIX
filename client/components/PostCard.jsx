@@ -303,13 +303,17 @@ export default function PostCard({
       {/* HEADER */}
       <div className="flex items-start justify-between gap-3 mb-5">
         <div className="flex items-center gap-3 min-w-0 flex-1">
-          {/* PROFILE IMAGE */}
-          <img
-            src={authorImage || "/default-avatar.png"}
-            alt="profile"
-            className="w-10 h-10 sm:w-11 sm:h-11 rounded-full object-cover shrink-0"
-          />
-
+          {authorImage ? (
+            <img
+              src={authorImage}
+              alt="profile"
+              className="w-10 h-10 sm:w-11 sm:h-11 rounded-full object-cover shrink-0"
+            />
+          ) : (
+            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-black text-white flex items-center justify-center font-semibold shrink-0">
+              {author?.charAt(0).toUpperCase() || "O"}
+            </div>
+          )}
           <div className="min-w-0">
             <Link
               href={`/profile/${author}`}
