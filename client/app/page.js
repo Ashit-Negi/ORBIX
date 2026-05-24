@@ -275,7 +275,7 @@ export default function Home() {
         </aside>
 
         {/* MAIN CONTENT */}
-        <section className="lg:col-span-9 space-y-4 sm:space-y-5 min-w-0">
+        <section className="lg:col-span-6 space-y-4 sm:space-y-5 min-w-0">
           {/* CREATE POST */}
           <div className="bg-white border border-[#e5e7eb] rounded-2xl sm:rounded-3xl p-4 sm:p-5">
             {/* TITLE */}
@@ -364,6 +364,58 @@ export default function Home() {
             ))}
           </div>
         </section>
+
+        {/* RIGHT SIDEBAR */}
+        <aside className="hidden lg:block lg:col-span-3">
+          <div className="sticky top-24 space-y-5">
+            {/* GREETING */}
+            <div className="bg-white border border-[#e5e7eb] rounded-3xl p-5">
+              <h2 className="text-lg font-semibold text-[#111111]">
+                👋 Welcome Back
+              </h2>
+
+              <p className="text-sm text-[#6b7280] mt-2">
+                Explore trending discussions and connect with people on Orbix.
+              </p>
+            </div>
+
+            {/* PEOPLE YOU MAY KNOW */}
+            <div className="bg-white border border-[#e5e7eb] rounded-3xl p-5">
+              <div className="flex items-center justify-between mb-5">
+                <h2 className="text-sm font-semibold text-[#111111]">
+                  People You May Know
+                </h2>
+              </div>
+
+              <div className="space-y-4">
+                {suggestedUsers.slice(0, 5).map((user) => (
+                  <Link
+                    key={user.id}
+                    href={`/profile/${user.username}`}
+                    className="flex items-center gap-3 hover:bg-[#f7f7f7] p-2 rounded-2xl transition"
+                  >
+                    <img
+                      src={
+                        user.image ||
+                        `https://ui-avatars.com/api/?name=${user.username}`
+                      }
+                      alt={user.username}
+                      className="w-12 h-12 rounded-full object-cover"
+                    />
+
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-[#111111] truncate">
+                        {user.username}
+                      </p>
+
+                      <p className="text-xs text-[#6b7280]">@{user.username}</p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </div>
+        </aside>
       </div>
     </main>
   );
