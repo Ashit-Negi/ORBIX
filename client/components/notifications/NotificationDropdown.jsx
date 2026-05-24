@@ -29,24 +29,20 @@ export default function NotificationDropdown({
       ).length;
 
       setNotificationCount(unreadCount);
-    } catch (error) {
-      console.log(error);
-    }
-  };
 
-  // MARK AS READ
-  const markAsRead = async () => {
-    try {
-      await API.put("/notifications/read");
+      // MARK READ IN BACKGROUND
+      if (unreadCount > 0) {
+        API.put("/notifications/read").catch((err) => console.log(err));
 
-      setNotificationCount(0);
+        setNotifications((prev) =>
+          prev.map((notification) => ({
+            ...notification,
+            read: true,
+          })),
+        );
 
-      setNotifications((prev) =>
-        prev.map((notification) => ({
-          ...notification,
-          read: true,
-        })),
-      );
+        setNotificationCount(0);
+      }
     } catch (error) {
       console.log(error);
     }
@@ -55,15 +51,17 @@ export default function NotificationDropdown({
   useEffect(() => {
     fetchNotifications();
 
-    markAsRead();
-
+    // SOCKET ROOM JOIN
     const token = localStorage.getItem("token");
 
     if (token) {
-      const payload = JSON.parse(atob(token.split(".")[1]));
+      try {
+        const payload = JSON.parse(atob(token.split(".")[1]));
 
-      // JOIN ROOM
-      socket.emit("join-user-room", payload.userId);
+        socket.emit("join-user-room", payload.userId);
+      } catch (error) {
+        console.log(error);
+      }
     }
 
     // REALTIME NOTIFICATIONS
@@ -87,20 +85,18 @@ export default function NotificationDropdown({
 
   // ACCEPT REQUEST
   const acceptRequest = async (connectionId) => {
+    // OPTIMISTIC UPDATE
+    setNotifications((prev) =>
+      prev.filter((notification) => notification.connectionId !== connectionId),
+    );
+
     try {
       await API.put(`/connections/accept/${connectionId}`);
-
-      // REMOVE OLD REQUEST
-      setNotifications((prev) =>
-        prev.filter(
-          (notification) => notification.connectionId !== connectionId,
-        ),
-      );
-
-      // REFETCH
-      fetchNotifications();
     } catch (error) {
       console.log(error);
+
+      // REFETCH IF FAILED
+      fetchNotifications();
     }
   };
 
@@ -115,21 +111,15 @@ export default function NotificationDropdown({
         absolute
         top-14
         right-0
-
         z-[999]
-
         w-[320px]
         max-w-[calc(100vw-16px)]
-
         sm:w-[380px]
-
         bg-white
         border
         border-[#e5e7eb]
-
         rounded-2xl
         sm:rounded-3xl
-
         shadow-2xl
         overflow-hidden
       "

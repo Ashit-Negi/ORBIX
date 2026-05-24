@@ -5,6 +5,7 @@ const sendNotification = require("../utils/sendNotification");
 exports.sendRequest = async (req, res) => {
   try {
     const senderId = req.user.userId;
+
     const receiverId = req.params.userId;
 
     // SELF REQUEST CHECK
@@ -14,7 +15,7 @@ exports.sendRequest = async (req, res) => {
       });
     }
 
-    // CHECK USER EXISTS
+    // CHECK RECEIVER EXISTS
     const userExists = await prisma.user.findUnique({
       where: {
         id: receiverId,
@@ -27,7 +28,7 @@ exports.sendRequest = async (req, res) => {
       });
     }
 
-    // CHECK EXISTING REQUEST
+    // FIND EXISTING CONNECTION
     const existingRequest = await prisma.connection.findFirst({
       where: {
         OR: [
@@ -35,6 +36,7 @@ exports.sendRequest = async (req, res) => {
             senderId,
             receiverId,
           },
+
           {
             senderId: receiverId,
             receiverId: senderId,
@@ -43,48 +45,137 @@ exports.sendRequest = async (req, res) => {
       },
     });
 
-    if (existingRequest) {
+    // ALREADY CONNECTED
+    if (existingRequest?.status === "ACCEPTED") {
       return res.status(400).json({
-        message: "Connection already exists or pending",
+        message: "Already connected",
       });
     }
 
-    // CREATE REQUEST
+    // CURRENT USER ALREADY SENT REQUEST
+    if (
+      existingRequest &&
+      existingRequest.senderId === senderId &&
+      existingRequest.status === "PENDING"
+    ) {
+      return res.status(400).json({
+        message: "Connection request already sent",
+      });
+    }
+
+    // REVERSE REQUEST EXISTS -> AUTO ACCEPT
+    if (
+      existingRequest &&
+      existingRequest.senderId === receiverId &&
+      existingRequest.status === "PENDING"
+    ) {
+      const updatedConnection = await prisma.connection.update({
+        where: {
+          id: existingRequest.id,
+        },
+
+        data: {
+          status: "ACCEPTED",
+        },
+      });
+
+      // SOCKET
+      const io = req.app.get("io");
+
+      // REALTIME UPDATE
+      io.to(senderId).emit("connection-updated", {
+        profileId: senderId,
+
+        action: "INCREMENT",
+      });
+
+      io.to(receiverId).emit("connection-updated", {
+        profileId: receiverId,
+
+        action: "INCREMENT",
+      });
+
+      // DELETE OLD REQUEST NOTIFICATION
+      await prisma.notification.deleteMany({
+        where: {
+          connectionId: updatedConnection.id,
+
+          type: "CONNECTION_REQUEST",
+        },
+      });
+
+      // SEND ACCEPT NOTIFICATION
+      try {
+        await sendNotification({
+          io,
+
+          type: "CONNECTION_ACCEPTED",
+
+          senderId,
+
+          receiverId,
+
+          connectionId: updatedConnection.id,
+
+          message: `${req.user.username} accepted your connection request`,
+        });
+      } catch (notificationError) {
+        console.log("Notification Error:", notificationError.message);
+      }
+
+      return res.status(200).json({
+        message: "Connection accepted automatically",
+
+        connection: updatedConnection,
+      });
+    }
+
+    // CREATE NEW REQUEST
     const connection = await prisma.connection.create({
       data: {
         senderId,
+
         receiverId,
+
+        status: "PENDING",
       },
     });
 
-    // CREATE NOTIFICATION
+    // SOCKET
     const io = req.app.get("io");
 
-    await sendNotification({
-      io,
+    // SEND NOTIFICATION
+    try {
+      await sendNotification({
+        io,
 
-      type: "CONNECTION_REQUEST",
+        type: "CONNECTION_REQUEST",
 
-      senderId,
+        senderId,
 
-      receiverId,
+        receiverId,
 
-      connectionId: connection.id,
+        connectionId: connection.id,
 
-      message: `${req.user.username} sent you a connection request`,
-    });
+        message: `${req.user.username} sent you a connection request`,
+      });
+    } catch (notificationError) {
+      console.log("Notification Error:", notificationError.message);
+    }
 
     res.status(201).json({
       message: "Connection request sent",
+
       connection,
     });
   } catch (error) {
+    console.log("Send Request Error:", error);
+
     res.status(500).json({
       error: error.message,
     });
   }
 };
-
 // ACCEPT CONNECTION REQUEST
 exports.acceptRequest = async (req, res) => {
   try {

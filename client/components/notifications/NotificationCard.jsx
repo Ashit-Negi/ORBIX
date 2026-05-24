@@ -2,6 +2,8 @@
 
 import { useRouter } from "next/navigation";
 
+import { useState } from "react";
+
 export default function NotificationCard({
   notification,
   onAccept,
@@ -9,11 +11,13 @@ export default function NotificationCard({
 }) {
   const router = useRouter();
 
+  const [loading, setLoading] = useState(false);
+
   // HANDLE CLICK
   const handleNavigation = () => {
-    // POST
     setShowNotifications(false);
 
+    // POST
     if (notification.postId) {
       router.push(`/posts/${notification.postId}`);
 
@@ -30,6 +34,21 @@ export default function NotificationCard({
     // PROFILE
     if (notification.sender?.username) {
       router.push(`/profile/${notification.sender.username}`);
+    }
+  };
+
+  // ACCEPT REQUEST
+  const handleAccept = async (e) => {
+    e.stopPropagation();
+
+    try {
+      setLoading(true);
+
+      await onAccept(notification.connectionId);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -64,18 +83,15 @@ export default function NotificationCard({
           </div>
         </div>
 
-        {/* ACCEPT */}
+        {/* ACCEPT BUTTON */}
         {notification.type === "CONNECTION_REQUEST" &&
           notification.connectionId && (
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-
-                onAccept(notification.connectionId);
-              }}
-              className="w-full sm:w-auto bg-[#22c55e] hover:bg-[#16a34a] text-white text-sm px-4 py-2 rounded-xl transition shrink-0"
+              onClick={handleAccept}
+              disabled={loading}
+              className="w-full sm:w-auto bg-[#22c55e] hover:bg-[#16a34a] disabled:opacity-60 text-white text-sm px-4 py-2 rounded-xl transition shrink-0"
             >
-              Accept
+              {loading ? "Accepting..." : "Accept"}
             </button>
           )}
       </div>
